@@ -112,7 +112,11 @@ class ImportWindow(QtWidgets.QWidget):
 
         self.clearOutput()
 
-        self._import_btn.setEnabled(False)
+        def toggleInput(enabled: bool):
+            self._import_btn.setEnabled(enabled)
+            self._filepath_edit.setEnabled(enabled)
+
+        toggleInput(False)
 
         self._thread = QtCore.QThread()
         self._worker = self._worker_cls()
@@ -122,6 +126,6 @@ class ImportWindow(QtWidgets.QWidget):
         self._worker.finished.connect(self._thread.quit)
         self._worker.finished.connect(self._worker.deleteLater)
         self._thread.finished.connect(self._thread.deleteLater)
-        self._thread.finished.connect(lambda: self._import_btn.setEnabled(True))
+        self._thread.finished.connect(lambda: toggleInput(True))
 
         self._thread.start()
