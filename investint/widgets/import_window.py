@@ -1,4 +1,5 @@
 import cvm
+import functools
 import typing
 import zipfile
 from PyQt5     import QtCore, QtGui, QtWidgets
@@ -49,12 +50,10 @@ class ImportFCAWorker(ImportZipWorker):
             session.commit()
 
 class ImportWindow(QtWidgets.QWidget):
-    def __init__(self, worker: ImportWorker, parent: typing.Optional[QtWidgets.QWidget] = None):
+    def __init__(self, worker_cls: typing.Type[ImportWorker], parent: typing.Optional[QtWidgets.QWidget] = None):
         super().__init__(parent, QtCore.Qt.WindowType.Window)
 
-        self._worker = worker
-        self._worker.setParent(self)
-
+        self._worker_cls = worker_cls
         self._filename_filter = 'Any File (*)'
 
         self._initWidgets()
@@ -116,13 +115,13 @@ class ImportWindow(QtWidgets.QWidget):
         self._import_btn.setEnabled(False)
 
         self._thread = QtCore.QThread()
+        self._worker = self._worker_cls()
         self._worker.moveToThread(self._thread)
-        self._thread.started.connect(lambda: self._worker.run(filepath))
+        self._thread.started.connect(functools.partial(self._worker.run, filepath))
         self._worker.advanced.connect(self.appendOutput)
         self._worker.finished.connect(self._thread.quit)
+        self._worker.finished.connect(self._worker.deleteLater)
         self._thread.finished.connect(self._thread.deleteLater)
-        self._thread.finished.connect(lambda: self._worker.advanced.disconnect(self.appendOutput))
-        self._thread.finished.connect(lambda: self._worker.finished.disconnect(self._thread.quit))
         self._thread.finished.connect(lambda: self._import_btn.setEnabled(True))
 
         self._thread.start()

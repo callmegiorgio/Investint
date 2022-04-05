@@ -22,7 +22,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def _onImportFCAAction(self):
-        win = widgets.ImportWindow(widgets.ImportFCAWorker(), self)
+        win = widgets.ImportWindow(widgets.ImportFCAWorker, self)
         win.setWindowTitle('Import FCA')
         win.setFileNameFilter('FCA File (*.zip)')
         win.show()
