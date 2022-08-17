@@ -9,6 +9,7 @@ from investint import models
 class ImportWorker(QtCore.QObject):
     """Imports a file in a worker thread."""
 
+    produced = QtCore.pyqtSignal(object)
     advanced = QtCore.pyqtSignal(str)
     finished = QtCore.pyqtSignal()
     
@@ -31,23 +32,39 @@ class ImportZipWorker(ImportWorker):
 
 class ImportFCAWorker(ImportZipWorker):
     def read(self, file: zipfile.ZipFile):
-        with models.get_session() as session:
-            try:
-                for fca in csvio.fca_reader(file):
-                    co = models.PublicCompany.fromFCA(fca)
+        try:
+            for fca in csvio.fca_reader(file):
+                co = models.PublicCompany.fromFCA(fca)
 
-                    if co is None:
-                        output_action = 'Skipped'
-                    else:
-                        session.add(co)
-                        output_action = 'Read'
+                if co is None:
+                    output_action = 'Skipped'
+                else:
+                    session.add(co)
+                    output_action = 'Read'
 
-                    output = output_action + f" FCA id {fca.id} by company '{fca.company_name}' (version: {fca.version})"
-                    self.advanced.emit(output)
-            except cvm.exceptions.BadDocument as exc:
-                self.advanced.emit(f"Raised exception '{exc.__class__.__name__}' while reading document: {exc}")
+                output = output_action + f" FCA id {fca.id} by company '{fca.company_name}' (version: {fca.version})"
 
-            session.commit()
+                self.produced.emit(co)
+                self.advanced.emit(output)
+
+        except cvm.exceptions.BadDocument as exc:
+            self.advanced.emit(f"Raised exception '{exc.__class__.__name__}' while reading document: {exc}")
+
+class ImportDFPITRWorker(ImportZipWorker):
+    def read(self, file: zipfile.ZipFile):
+        try:
+            for doc in csvio.dfpitr_reader(file):
+                stmts = models.Statement.fromDocument(doc, cvm.datatypes.BalanceType.CONSOLIDATED)
+
+                if len(stmts) == 0:
+                    self.advanced.emit(f"No statements for document: {doc}")
+
+                for stmt in stmts:
+                    self.produced.emit(stmt)
+                    self.advanced.emit(f"Read {doc.type.name} id {doc.id} by company '{doc.company_name}' (version: {doc.version})")
+
+        except cvm.exceptions.BadDocument as exc:
+            self.advanced.emit(f"Raised exception '{exc.__class__.__name__}' while reading document: {exc}")
 
 class ImportWindow(QtWidgets.QWidget):
     def __init__(self, worker_cls: typing.Type[ImportWorker], parent: typing.Optional[QtWidgets.QWidget] = None):
@@ -122,10 +139,12 @@ class ImportWindow(QtWidgets.QWidget):
         self._worker = self._worker_cls()
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(functools.partial(self._worker.run, filepath))
+        self._worker.produced.connect(lambda obj: models.get_session().add(obj))
         self._worker.advanced.connect(self.appendOutput)
         self._worker.finished.connect(self._thread.quit)
         self._worker.finished.connect(self._worker.deleteLater)
         self._thread.finished.connect(self._thread.deleteLater)
         self._thread.finished.connect(lambda: toggleInput(True))
+        self._thread.finished.connect(lambda: models.get_session().commit())
 
         self._thread.start()

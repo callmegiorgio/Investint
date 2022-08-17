@@ -72,13 +72,8 @@ class GeneralInfoWidget(QtWidgets.QWidget):
 
         self.setLayout(main_layout)
 
-    def selectCompany(self, cnpj: int):
-        co = models.PublicCompany.findByCNPJ(cnpj)
-
-        if co is None:
-            return
-            
-        self._cnpj_lbl.setLowerText(str(cvm.datatypes.tax_id.CNPJ(cnpj)))
+    def setCompany(self, co: models.PublicCompany):
+        self._cnpj_lbl.setLowerText(str(cvm.datatypes.tax_id.CNPJ(co.cnpj)))
         self._cvm_code_lbl.setLowerText(str(co.cvm_code))
 
         def labelSince(text, date):

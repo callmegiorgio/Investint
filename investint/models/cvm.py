@@ -3,11 +3,7 @@ import typing
 import cvm
 import enum
 import sqlalchemy as sa
-from cvm.datatypes.industry     import Industry as CVMIndustry
-from cvm.datatypes.country      import Country
-from cvm.datatypes.registration import RegistrationStatus, RegistrationCategory
-from cvm.datatypes.issuer       import IssuerStatus
-from cvm.datatypes.controlling_interest import ControllingInterest
+from cvm       import datatypes
 from investint import models
 
 def _enumByValue(enum_type: typing.Type[cvm.datatypes.enums.DescriptiveIntEnum]):
@@ -26,30 +22,33 @@ class PublicCompany(models.Base):
     trade_name                 = sa.Column(sa.String)
     establishment_date         = sa.Column(sa.Date,    nullable=False)
     cvm_code                   = sa.Column(sa.Integer, nullable=False, unique=True)
-    industry                   = sa.Column(sa.Enum(CVMIndustry, values_callable=_enumByValue), nullable=False)
+    industry                   = sa.Column(sa.Enum(datatypes.Industry, values_callable=_enumByValue), nullable=False)
     activity_description       = sa.Column(sa.String)
     registration_date          = sa.Column(sa.Date, nullable=False)
-    registration_status        = sa.Column(sa.Enum(RegistrationStatus, values_callable=_enumByDescription), nullable=False)
+    registration_status        = sa.Column(sa.Enum(datatypes.RegistrationStatus, values_callable=_enumByDescription), nullable=False)
     registration_status_date   = sa.Column(sa.Date, nullable=False)
-    registration_category      = sa.Column(sa.Enum(RegistrationCategory, values_callable=_enumByDescription), nullable=False)
+    registration_category      = sa.Column(sa.Enum(datatypes.RegistrationCategory, values_callable=_enumByDescription), nullable=False)
     registration_category_date = sa.Column(sa.Date, nullable=False)
     cancelation_date           = sa.Column(sa.Date)
     cancelation_reason         = sa.Column(sa.String)
-    home_country               = sa.Column(sa.Enum(Country), nullable=False)
-    securities_custody_country = sa.Column(sa.Enum(Country))
-    issuer_status              = sa.Column(sa.Enum(IssuerStatus, values_callable=_enumByDescription))
+    home_country               = sa.Column(sa.Enum(datatypes.Country), nullable=False)
+    securities_custody_country = sa.Column(sa.Enum(datatypes.Country))
+    issuer_status              = sa.Column(sa.Enum(datatypes.IssuerStatus, values_callable=_enumByDescription))
     issuer_status_date         = sa.Column(sa.Date)
-    controlling_interest       = sa.Column(sa.Enum(ControllingInterest, values_callable=_enumByDescription))
+    controlling_interest       = sa.Column(sa.Enum(datatypes.ControllingInterest, values_callable=_enumByDescription))
     controlling_interest_date  = sa.Column(sa.Date)
     fiscal_year_closing_day    = sa.Column(sa.Integer, nullable=False)
     fiscal_year_closing_month  = sa.Column(sa.Integer, nullable=False)
     fiscal_year_change_date    = sa.Column(sa.Date)
     webpage                    = sa.Column(sa.String)
 
+    statements: typing.Sequence['Statement'] = sa.orm.relationship('Statement')
+
     @staticmethod
     def findByCNPJ(cnpj: int) -> typing.Optional[PublicCompany]:
-        with models.get_session() as session:
-            return session.query(PublicCompany).filter(PublicCompany.cnpj == cnpj).one_or_none()
+        session = models.get_session()
+
+        return session.query(PublicCompany).filter(PublicCompany.cnpj == cnpj).one_or_none()
 
     @staticmethod
     def findInfoByExpression(expr: str) -> typing.List[typing.Tuple[int, str]]:
@@ -58,33 +57,30 @@ class PublicCompany(models.Base):
 
         names = []
 
-        with models.get_session() as session:
-            stmt = (
-                sa.select(
-                    PublicCompany.cnpj,
-                    PublicCompany.corporate_name
-                  )
-                  .where(
-                      sa.or_(
-                        PublicCompany.corporate_name.like(expr + '%'),
-                        sa.cast(PublicCompany.cvm_code, sa.String) == expr
-                      )
-                  )
-            )
+        stmt = (
+            sa.select(
+                PublicCompany.cnpj,
+                PublicCompany.corporate_name
+                )
+                .where(
+                    sa.or_(
+                    PublicCompany.corporate_name.like(expr + '%'),
+                    sa.cast(PublicCompany.cvm_code, sa.String) == expr
+                    )
+                )
+        )
 
-            results = session.execute(stmt).all()
+        session = models.get_session()
+        results = session.execute(stmt).all()
 
-            for row in results:
-                names.append(row[0:2])
+        for row in results:
+            names.append(row[0:2])
 
         return names
 
     @staticmethod
     def exists(cnpj: int) -> bool:
         return PublicCompany.findByCNPJ(cnpj) is not None
-        # with models.get_session() as session:
-
-        #     return session.query(sa.lite).filter(PublicCompany.cnpj == cnpj).one_or_none()
 
     @staticmethod
     def fromFCA(fca: cvm.datatypes.document.FCA) -> typing.Optional[PublicCompany]:
@@ -129,10 +125,79 @@ class Statement(models.Base):
 
     id                = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     cnpj              = sa.Column(sa.Integer, sa.ForeignKey('public_company.cnpj'), nullable=False)
-    version           = sa.Column(sa.Integer, nullable=False)
-    reference_date    = sa.Column(sa.Date,    nullable=False)
+    statement_type    = sa.Column(sa.Enum(datatypes.StatementType), nullable=False)
+    document_type     = sa.Column(sa.Enum(datatypes.DocumentType),  nullable=False)
+    document_id       = sa.Column(sa.Integer,                       nullable=False)
+    balance_type      = sa.Column(sa.Enum(datatypes.BalanceType),   nullable=False)
+    version           = sa.Column(sa.Integer,                       nullable=False)
+    reference_date    = sa.Column(sa.Date,                          nullable=False)
     fiscal_year_start = sa.Column(sa.Date)
-    fiscal_year_end   = sa.Column(sa.Date,    nullable=False)
+    fiscal_year_end   = sa.Column(sa.Date,                          nullable=False)
+
+    accounts = sa.orm.relationship('Account')
+
+    @staticmethod
+    def findByDocument(document_type: datatypes.DocumentType,
+                       document_id: int,
+                       balance_type: datatypes.BalanceType
+    ) -> typing.Optional[Statement]:
+        with models.get_session() as session:
+            return (
+                session.query(Statement)
+                       .filter(document_type=document_type, document_id=document_id, balance_type=balance_type)
+                       .one_or_none()
+            )
+
+    @staticmethod
+    def fromDocument(doc: cvm.datatypes.DFPITR, balance_type: cvm.datatypes.BalanceType) -> typing.List[Statement]:
+        mapping = doc[balance_type]
+
+        if len(mapping) == 0:
+            return []
+        
+        stmts = []
+
+        def makeStatement(accounts: cvm.datatypes.AccountTuple):
+            stmt = Statement()
+            stmt.cnpj           = doc.cnpj
+            stmt.document_type  = doc.type
+            stmt.document_id    = doc.id
+            stmt.balance_type   = balance_type
+            stmt.version        = doc.version
+            stmt.reference_date = doc.reference_date
+            stmt.accounts       = [Account.fromCVM(cvm_acc) for cvm_acc in accounts.normalized()]
+
+            return stmt
+        
+        coll = mapping[cvm.datatypes.FiscalYearOrder.LAST]
+
+        stmt = makeStatement(coll.bpa.accounts)
+        stmt.statement_type    = cvm.datatypes.StatementType.BPA
+        stmt.fiscal_year_start = None
+        stmt.fiscal_year_end   = coll.bpa.fiscal_year_end
+        stmts.append(stmt)
+
+        stmt = makeStatement(coll.bpp.accounts)
+        stmt.statement_type    = cvm.datatypes.StatementType.BPP
+        stmt.fiscal_year_start = None
+        stmt.fiscal_year_end   = coll.bpp.fiscal_year_end
+        stmts.append(stmt)
+
+        stmt = makeStatement(coll.dre.accounts)
+        stmt.statement_type    = cvm.datatypes.StatementType.DRE
+        stmt.fiscal_year_start = coll.dre.fiscal_year_start
+        stmt.fiscal_year_end   = coll.dre.fiscal_year_end
+        stmts.append(stmt)
+
+        stmt = makeStatement(coll.dre.accounts)
+        stmt.statement_type    = cvm.datatypes.StatementType.DRA
+        stmt.fiscal_year_start = coll.dra.fiscal_year_start
+        stmt.fiscal_year_end   = coll.dra.fiscal_year_end
+        stmts.append(stmt)
+
+        # TODO: other statement types
+
+        return stmts
 
 class Account(models.Base):
     __tablename__ = 'account'
@@ -142,3 +207,11 @@ class Account(models.Base):
     code         = sa.Column(sa.String,  nullable=False)
     name         = sa.Column(sa.String,  nullable=False)
     quantity     = sa.Column(sa.Float,   nullable=False)
+
+    @staticmethod
+    def fromCVM(account: cvm.datatypes.Account):
+        return Account(
+            code     = account.code,
+            name     = account.name,
+            quantity = account.quantity
+        )
