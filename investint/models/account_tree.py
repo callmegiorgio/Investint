@@ -38,7 +38,7 @@ class AccountTreeItem:
             except IndexError:
                 pass
         
-        return ''
+        return self._code
     
     def name(self) -> str:
         return self._name
@@ -160,7 +160,7 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
                 quantity = account.quantity
             )
 
-            if account_item.level() == 2:
+            if account_item.level() == 1:
                 # Got top-level account.
                 parent_item = self._root_item
             else:
@@ -189,7 +189,7 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
             try:
                 parent_item = parent_items.pop(parent_code)
             except KeyError:
-                continue
+                parent_item = self._root_item
             
             parent_item._appendChildren(children)
 
