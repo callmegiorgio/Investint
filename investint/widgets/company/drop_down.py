@@ -1,12 +1,13 @@
+import cvm
 import typing
 from PyQt5     import QtCore, QtGui, QtWidgets
 from investint import models
 
 class CompanyDropDown(QtWidgets.QWidget):
-    companySelected = QtCore.pyqtSignal(int)
+    companyChanged = QtCore.pyqtSignal(cvm.datatypes.CNPJ)
 
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None):
-        super().__init__(parent)
+        super().__init__(parent=parent)
 
         self._initWidgets()
         self._initLayouts()
@@ -32,6 +33,10 @@ class CompanyDropDown(QtWidgets.QWidget):
 
         self.setLayout(main_layout)
 
+    def currentCompany(self) -> typing.Optional[cvm.datatypes.CNPJ]:
+        index = self._edit.completer().currentIndex()
+        return index.data(QtCore.Qt.ItemDataRole.UserRole + 1)
+
     @QtCore.pyqtSlot(str)
     def _onTextEdited(self, text: str):
         self._model.clear()
@@ -40,23 +45,24 @@ class CompanyDropDown(QtWidgets.QWidget):
         #     return
         
         for cnpj, name in models.PublicCompany.findInfoByExpression(text):
-            item = QtGui.QStandardItem(name)
-            item.setData(cnpj)
+            cnpj = cvm.datatypes.CNPJ(cnpj)
+            item = QtGui.QStandardItem(f'{name} ({cnpj})')
+            item.setData(cnpj, QtCore.Qt.ItemDataRole.UserRole + 1)
 
             self._model.appendRow(item)
     
     @QtCore.pyqtSlot(QtCore.QModelIndex)
     def _onCompleterIndexActivated(self, index: QtCore.QModelIndex):
         # https://stackoverflow.com/questions/39294136/why-does-my-qstandarditemmodel-itemfromindex-method-return-none-index-invalid
-        proxy: QtCore.QAbstractProxyModel = index.model()
+        proxy_model: QtCore.QAbstractProxyModel = index.model()
 
-        source_index = proxy.mapToSource(index)
-
-        item = self._model.itemFromIndex(source_index)
+        source_index = proxy_model.mapToSource(index)
+        cnpj         = source_index.data(QtCore.Qt.ItemDataRole.UserRole + 1)
         
-        if item is None:
+        if cnpj is None:
             return
-        
-        cnpj = item.data()
 
-        self.companySelected.emit(cnpj)
+        print('cnpj (str):', repr(cnpj))
+        print('cnpj (int):', int(cnpj))
+        
+        self.companyChanged.emit(cnpj)

@@ -1,9 +1,14 @@
-from investint.widgets.company_drop_down   import CompanyDropDown
-from investint.widgets.double_label        import DoubleLabel
-from investint.widgets.import_window       import ImportWindow, ImportWorker, ImportZipWorker,\
-                                                  ImportFCAWorker, ImportDFPITRWorker
-from investint.widgets.general_info_widget import GeneralInfoWidget
-from investint.widgets.account_tree_widget import AccountTreeWidget
-from investint.widgets.statement_widget    import StatementWidget
-from investint.widgets.main_widget         import MainWidget
-from investint.widgets.main_window         import MainWindow
+from investint.widgets.common.year_range           import YearRangeWidget
+from investint.widgets.common.account_tree         import AccountTreeWidget
+from investint.widgets.common.double_label         import DoubleLabel
+from investint.widgets.importing.window            import ImportingWindow
+from investint.widgets.importing.fca               import ImportingFcaWindow
+from investint.widgets.importing.dfpitr            import ImportingDfpItrWindow
+from investint.widgets.company.drop_down           import CompanyDropDown
+from investint.widgets.company.general_information import CompanyGeneralInformationWidget
+from investint.widgets.company.cvm_statement       import CompanyCvmStatementWidget
+from investint.widgets.company.statement_period    import CompanyStatementPeriodSelector
+from investint.widgets.company.statement           import CompanyStatementWidget
+from investint.widgets.company.financials          import CompanyFinancialsWidget
+from investint.widgets.company.widget              import CompanyWidget
+from investint.widgets.main_window                 import MainWindow

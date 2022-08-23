@@ -3,7 +3,7 @@ from PyQt5     import QtCore, QtWidgets
 from investint import widgets, models
 import cvm
 
-class GeneralInfoWidget(QtWidgets.QWidget):
+class CompanyGeneralInformationWidget(QtWidgets.QWidget):
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None):
         super().__init__(parent)
 
@@ -31,6 +31,9 @@ class GeneralInfoWidget(QtWidgets.QWidget):
         self._webpage_lbl                    = widgets.DoubleLabel('<b>Página da Web</b>')
 
     def _initLayouts(self):
+        # This widget needs a SERIOUS improvement...
+        # but on my defense, argh, there are too many fields to show.
+
         ids_layout = QtWidgets.QHBoxLayout()
         ids_layout.addWidget(self._cnpj_lbl)
         ids_layout.addWidget(self._cvm_code_lbl)

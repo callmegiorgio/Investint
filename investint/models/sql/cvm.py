@@ -1,4 +1,5 @@
 from __future__ import annotations
+import dataclasses
 import typing
 import cvm
 import enum
@@ -64,8 +65,8 @@ class PublicCompany(models.Base):
                 )
                 .where(
                     sa.or_(
-                    PublicCompany.corporate_name.like(expr + '%'),
-                    sa.cast(PublicCompany.cvm_code, sa.String) == expr
+                        PublicCompany.corporate_name.like(expr + '%'),
+                        sa.cast(PublicCompany.cvm_code, sa.String) == expr
                     )
                 )
         )
@@ -74,7 +75,7 @@ class PublicCompany(models.Base):
         results = session.execute(stmt).all()
 
         for row in results:
-            names.append(row[0:2])
+            names.append(tuple(row))
 
         return names
 
@@ -83,15 +84,12 @@ class PublicCompany(models.Base):
         return PublicCompany.findByCNPJ(cnpj) is not None
 
     @staticmethod
-    def fromFCA(fca: cvm.datatypes.document.FCA) -> typing.Optional[PublicCompany]:
+    def fromFCA(fca: cvm.datatypes.FCA) -> typing.Optional[PublicCompany]:
         if fca.issuer_company is None:
             return None
 
-        co = PublicCompany.findByCNPJ(fca.cnpj)
-
-        if co is None:
-            co = PublicCompany(cnpj = fca.cnpj)
-        
+        co = PublicCompany()
+        co.cnpj                       = fca.cnpj
         co.corporate_name             = fca.issuer_company.corporate_name
         co.corporate_name_date        = fca.issuer_company.corporate_name_last_changed
         co.prev_corporate_name        = fca.issuer_company.previous_corporate_name
@@ -198,6 +196,80 @@ class Statement(models.Base):
         # TODO: other statement types
 
         return stmts
+
+mapper_registry = sa.orm.registry()
+
+@mapper_registry.mapped
+@dataclasses.dataclass
+class IncomeStatement(cvm.balances.IncomeStatement):
+    __table__ = sa.Table(
+        'income_statement',
+        models.Base.metadata,
+        sa.Column('id',                            sa.Integer, primary_key=True, autoincrement=True),
+        sa.Column('dre_id',                        sa.Integer, sa.ForeignKey('statement.id'), nullable=False),
+        sa.Column('revenue',                       sa.Integer, nullable=False),
+        sa.Column('costs',                         sa.Integer, nullable=False),
+        sa.Column('gross_profit',                  sa.Integer, nullable=False),
+        sa.Column('operating_income_and_expenses', sa.Integer, nullable=False),
+        sa.Column('operating_result',              sa.Integer),
+        sa.Column('depreciation_and_amortization', sa.Integer),
+        sa.Column('operating_profit',              sa.Integer, nullable=False),
+        sa.Column('nonoperating_result',           sa.Integer, nullable=False),
+        sa.Column('earnings_before_tax',           sa.Integer, nullable=False),
+        sa.Column('tax_expenses',                  sa.Integer, nullable=False),
+        sa.Column('continuing_operation_result',   sa.Integer, nullable=False),
+        sa.Column('discontinued_operation_result', sa.Integer, nullable=False),
+        sa.Column('net_income',                    sa.Integer, nullable=False),
+    )
+
+    id: int     = dataclasses.field(init=False)
+    dre_id: int = dataclasses.field(init=False)
+    dre: Statement
+
+    __mapper_args__ = {
+        'properties': {
+            'dre': sa.orm.relationship(Statement)
+        }
+    }
+
+@mapper_registry.mapped
+@dataclasses.dataclass
+class BalanceSheet(cvm.balances.BalanceSheet):
+    __table__ = sa.Table(
+        'balance_sheet',
+        models.Base.metadata,
+        sa.Column('id',                             sa.Integer, primary_key=True, autoincrement=True),
+        sa.Column('bpa_id',                         sa.Integer, sa.ForeignKey('statement.id'), nullable=False),
+        sa.Column('bpp_id',                         sa.Integer, sa.ForeignKey('statement.id'), nullable=False),
+        sa.Column('total_assets',                   sa.Integer, nullable=False),
+        sa.Column('current_assets',                 sa.Integer),
+        sa.Column('cash_and_cash_equivalents',      sa.Integer, nullable=False),
+        sa.Column('financial_investments',          sa.Integer, nullable=False),
+        sa.Column('receivables',                    sa.Integer, nullable=False),
+        sa.Column('noncurrent_assets',              sa.Integer),
+        sa.Column('investments',                    sa.Integer, nullable=False),
+        sa.Column('fixed_assets',                   sa.Integer, nullable=False),
+        sa.Column('intangible_assets',              sa.Integer, nullable=False),
+        sa.Column('total_liabilities',              sa.Integer, nullable=False),
+        sa.Column('current_liabilities',            sa.Integer),
+        sa.Column('current_loans_and_financing',    sa.Integer),
+        sa.Column('noncurrent_liabilities',         sa.Integer),
+        sa.Column('noncurrent_loans_and_financing', sa.Integer),
+        sa.Column('equity',                         sa.Integer, nullable=False)
+    )
+
+    id: int     = dataclasses.field(init=False)
+    bpa_id: int = dataclasses.field(init=False)
+    bpp_id: int = dataclasses.field(init=False)
+    bpa: Statement
+    bpp: Statement
+
+    __mapper_args__ = {
+        'properties': {
+            'bpa': sa.orm.relationship(Statement, foreign_keys=[__table__.c.bpa_id]),
+            'bpp': sa.orm.relationship(Statement, foreign_keys=[__table__.c.bpp_id])
+        }
+    }
 
 class Account(models.Base):
     __tablename__ = 'account'

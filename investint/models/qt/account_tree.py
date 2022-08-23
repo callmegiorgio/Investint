@@ -94,7 +94,6 @@ class AccountTreeItem:
             child._sort()
 
 class AccountTreeModel(QtCore.QAbstractItemModel):
-
     class Column(enum.IntEnum):
         Code     = 0
         Name     = 1
