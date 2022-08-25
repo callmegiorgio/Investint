@@ -144,3 +144,27 @@ class ImportingWindow(QtWidgets.QWidget):
         self._worker.deleteLater()
         self._worker_thread.disconnect()
         self.importingFinished.emit()
+
+    ################################################################################
+    # Overriden methods
+    ################################################################################
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        if not self.isImporting():
+            event.accept()
+            return
+
+        ret = QtWidgets.QMessageBox.question(
+            self,
+            'Confirmation',
+            'A file is currently being imported. Stopping the importing process '
+            'will result in all progress being lost. Do you want to stop it?',
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
+        )
+
+        if ret == QtWidgets.QMessageBox.StandardButton.Yes:
+            self._worker.stop()
+            self._worker_thread.quit()
+            self._worker_thread.wait()
+            event.accept()
+        else:
+            event.ignore()
