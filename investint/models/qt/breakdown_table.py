@@ -58,7 +58,7 @@ class BreakdownTableModel(QtCore.QAbstractTableModel):
     3
     >>> model.number('a', 2)
     40
-    >>> (model.isHorizontalAnalysisColumn(column) for column in range(3))
+    >>> tuple(model.isHorizontalAnalysisColumn(column) for column in range(3))
     (False, True, False)
 
     The default implementation of `columnName()` returns the growth ratio
