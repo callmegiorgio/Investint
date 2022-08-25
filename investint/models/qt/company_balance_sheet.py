@@ -7,7 +7,7 @@ from investint import models
 
 class CompanyBalanceSheetModel(models.CompanyStatementModel):
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
-        mapped_attributes = {
+        mapped_row_names = {
             'total_assets':                   'Ativo Total',
             'current_assets':                 'Ativo Circulante',
             'cash_and_cash_equivalents':      'Caixa e Equivalente de Caixa',
@@ -25,7 +25,7 @@ class CompanyBalanceSheetModel(models.CompanyStatementModel):
             'equity':                         'Patrimônio Líquido'
         }
 
-        super().__init__(mapped_attributes=mapped_attributes, parent=parent)
+        super().__init__(mapped_row_names, parent)
 
     def selectStatement(self,
                         cnpj: int,

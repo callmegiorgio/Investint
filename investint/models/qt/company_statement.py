@@ -15,15 +15,11 @@ class CompanyStatementPeriod(enum.IntEnum):
     Quarter3  = 4
     Quarter4  = 5
 
-class CompanyStatementModel(models.BreakdownTableModel):
-    def __init__(self,
-                 mapped_attributes: typing.Dict[str, str],
-                 parent: typing.Optional[QtCore.QObject] = None
-    ) -> None:
-        super().__init__(row_names=mapped_attributes.keys(), parent=parent)
+class CompanyStatementModel(models.MappedBreakdownTableModel):
+    def __init__(self, mapped_row_names: typing.Dict[str, str], parent: typing.Optional[QtCore.QObject] = None) -> None:
+        super().__init__(mapped_row_names=mapped_row_names, parent=parent)
 
-        self._mapped_attrs = mapped_attributes
-        self._period       = CompanyStatementPeriod.Annual
+        self._period = CompanyStatementPeriod.Annual
 
     def selectStatement(self,
                         cnpj: int,
@@ -102,11 +98,6 @@ class CompanyStatementModel(models.BreakdownTableModel):
     ################################################################################
     # Overriden methods (BreakdownTableModel)
     ################################################################################
-    def rowName(self, row: int) -> str:
-        attr_name = super().rowName(row)
-
-        return self._mapped_attrs[attr_name]
-
     def columnName(self, column: int) -> str:
         if self.isHorizontalAnalysisColumn(column):
             return super().columnName(column)

@@ -7,7 +7,7 @@ from investint import models
 
 class CompanyIncomeStatementModel(models.CompanyStatementModel):
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
-        mapped_attributes = {
+        mapped_row_names = {
             'revenue':                       'Receita',
             'costs':                         'Custos',
             'gross_profit':                  'Lucro Bruto',
@@ -23,7 +23,7 @@ class CompanyIncomeStatementModel(models.CompanyStatementModel):
             'net_income':                    'Lucro Líquido'
         }
 
-        super().__init__(mapped_attributes=mapped_attributes, parent=parent)
+        super().__init__(mapped_row_names, parent)
 
     def selectStatement(self,
                         cnpj: int,

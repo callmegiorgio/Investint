@@ -5,6 +5,7 @@ from investint.models.sql.b3                      import ListedCompany, Instrume
 from investint.models.qt.reversible_proxy         import ReversibleProxyModel
 from investint.models.qt.account_tree             import AccountTreeModel, AccountTreeItem
 from investint.models.qt.breakdown_table          import BreakdownTableModel
+from investint.models.qt.mapped_breakdown_table   import MappedBreakdownTableModel
 from investint.models.qt.company_statement        import CompanyStatementModel, CompanyStatementPeriod
 from investint.models.qt.company_income_statement import CompanyIncomeStatementModel
 from investint.models.qt.company_balance_sheet    import CompanyBalanceSheetModel
