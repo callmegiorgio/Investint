@@ -98,16 +98,14 @@ class ImportingWindow(QtWidgets.QWidget):
             self._filepath_edit.setEnabled(enabled)
 
         self._worker_thread = QtCore.QThread()
-
+        
         self._worker = self.createWorker()
         self._worker.moveToThread(self._worker_thread)
         self._worker.messaged.connect(self.appendOutput)
         self._worker.finished.connect(self._worker_thread.quit)
         self._worker_thread.started.connect(functools.partial(self._worker.read, filepath))
         self._worker_thread.finished.connect(functools.partial(toggleInput, True))
-        self._worker_thread.finished.connect(self._worker.deleteLater)
-        self._worker_thread.finished.connect(self._worker_thread.deleteLater)
-        self._worker_thread.finished.connect(self.importingFinished)
+        self._worker_thread.finished.connect(self._onWorkerThreadFinished)
 
         self.clearOutput()
         toggleInput(False)
@@ -126,3 +124,10 @@ class ImportingWindow(QtWidgets.QWidget):
 
         self._filepath_edit.setText(filepath)
         self._import_btn.setEnabled(filepath != '')
+
+    @QtCore.pyqtSlot()
+    def _onWorkerThreadFinished(self):
+        self._worker.deleteLater()
+        self._worker_thread.deleteLater()
+        self._worker_thread = None
+        self.importingFinished.emit()
