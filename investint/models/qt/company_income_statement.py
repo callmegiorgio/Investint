@@ -33,13 +33,13 @@ class CompanyIncomeStatementModel(models.CompanyStatementModel):
     ) -> sa.select:
 
         I = models.IncomeStatement
-        S = models.Statement
+        D = models.Document
 
         return (
-            sa.select(S.reference_date, I)
-              .join(S)
-              .where(S.cnpj == cnpj)
-              .where(S.reference_date.between(start_date, end_date))
-              .where(S.document_type == document_type)
-              .order_by(S.reference_date.asc())
+            sa.select(D.reference_date, I)
+              .join(D)
+              .where(D.cnpj == cnpj)
+              .where(D.reference_date.between(start_date, end_date))
+              .where(D.type == document_type)
+              .order_by(D.reference_date.asc())
         )

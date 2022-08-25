@@ -1,7 +1,12 @@
-from investint.models.sql.base                    import Base, meta, set_engine, get_session
-from investint.models.sql.cvm                     import PublicCompany, Account, Statement,\
-                                                         IncomeStatement, BalanceSheet
-from investint.models.sql.b3                      import ListedCompany, Instrument, Quote
+from investint.models.sql.base import Base, metadata, mapper_registry, set_engine, get_session
+from investint.models.sql.cvm  import PublicCompany, Document, Statement,\
+                                      Account, IncomeStatement, BalanceSheet
+from investint.models.sql.b3   import ListedCompany, Instrument, Quote
+
+# Make sure everything is mapped upon execution of the application.
+import sqlalchemy.orm as sa_orm
+sa_orm.configure_mappers()
+
 from investint.models.qt.reversible_proxy         import ReversibleProxyModel
 from investint.models.qt.account_tree             import AccountTreeModel, AccountTreeItem
 from investint.models.qt.breakdown_table          import BreakdownTableModel

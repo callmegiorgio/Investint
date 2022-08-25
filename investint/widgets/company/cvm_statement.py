@@ -96,19 +96,20 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         #      ALL financial statements will be returned from the
         #      database. Please move this logic to database level
         #      for performance's sake.
-        for stmt in self._company.statements:
-            if stmt.document_type != required_doc_type:
+        for doc in self._company.documents:
+            if doc.type != required_doc_type:
                 continue
 
-            if required_stmt_type is not None and stmt.statement_type != required_stmt_type:
-                continue
-        
-            if stmt.balance_type != required_balance_type:
+            if doc.reference_date.year != required_reference_year:
                 continue
 
-            if stmt.reference_date.year != required_reference_year:
-                continue
+            for stmt in doc.statements:
+                if required_stmt_type is not None and stmt.statement_type != required_stmt_type:
+                    continue
+            
+                if stmt.balance_type != required_balance_type:
+                    continue
 
-            accounts += stmt.accounts
+                accounts += stmt.accounts
 
         self._account_tree.model().selectAccounts(accounts)

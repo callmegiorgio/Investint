@@ -2,8 +2,8 @@ from __future__ import annotations
 import dataclasses
 import typing
 import cvm
-import enum
-import sqlalchemy as sa
+import sqlalchemy     as sa
+import sqlalchemy.orm as sa_orm
 from cvm       import datatypes
 from investint import models
 
@@ -43,7 +43,7 @@ class PublicCompany(models.Base):
     fiscal_year_change_date    = sa.Column(sa.Date)
     webpage                    = sa.Column(sa.String)
 
-    statements: typing.Sequence['Statement'] = sa.orm.relationship('Statement')
+    documents = sa_orm.relationship('Document', back_populates='company', uselist=True)
 
     @staticmethod
     def findByCNPJ(cnpj: int) -> typing.Optional[PublicCompany]:
@@ -88,51 +88,135 @@ class PublicCompany(models.Base):
         if fca.issuer_company is None:
             return None
 
-        co = PublicCompany()
-        co.cnpj                       = fca.cnpj
-        co.corporate_name             = fca.issuer_company.corporate_name
-        co.corporate_name_date        = fca.issuer_company.corporate_name_last_changed
-        co.prev_corporate_name        = fca.issuer_company.previous_corporate_name
-        # co.trade_name                 = 
-        co.establishment_date         = fca.issuer_company.establishment_date
-        co.cvm_code                   = fca.issuer_company.cvm_code
-        co.industry                   = fca.issuer_company.industry
-        # co.activity_description       = 
-        co.registration_date          = fca.issuer_company.cvm_registration_date
-        co.registration_status        = fca.issuer_company.cvm_registration_status
-        co.registration_status_date   = fca.issuer_company.cvm_registration_status_started
-        co.registration_category      = fca.issuer_company.cvm_registration_category
-        co.registration_category_date = fca.issuer_company.cvm_registration_category_started
-        # co.cancelation_date           = 
-        # co.cancelation_reason         = 
-        co.home_country               = fca.issuer_company.home_country
-        co.securities_custody_country = fca.issuer_company.securities_custody_country
-        co.issuer_status              = fca.issuer_company.issuer_status
-        co.issuer_status_date         = fca.issuer_company.issuer_status_started
-        co.controlling_interest       = fca.issuer_company.controlling_interest
-        co.controlling_interest_date  = fca.issuer_company.controlling_interest_last_changed
-        co.fiscal_year_closing_day    = fca.issuer_company.fiscal_year_end_day
-        co.fiscal_year_closing_month  = fca.issuer_company.fiscal_year_end_month
-        co.fiscal_year_change_date    = fca.issuer_company.fiscal_year_last_changed
-        co.webpage                    = fca.issuer_company.webpage
+        return PublicCompany(
+            cnpj                       = fca.cnpj,
+            corporate_name             = fca.issuer_company.corporate_name,
+            corporate_name_date        = fca.issuer_company.corporate_name_last_changed,
+            prev_corporate_name        = fca.issuer_company.previous_corporate_name,
+            # co.trade_name                 = 
+            establishment_date         = fca.issuer_company.establishment_date,
+            cvm_code                   = fca.issuer_company.cvm_code,
+            industry                   = fca.issuer_company.industry,
+            # co.activity_description       = 
+            registration_date          = fca.issuer_company.cvm_registration_date,
+            registration_status        = fca.issuer_company.cvm_registration_status,
+            registration_status_date   = fca.issuer_company.cvm_registration_status_started,
+            registration_category      = fca.issuer_company.cvm_registration_category,
+            registration_category_date = fca.issuer_company.cvm_registration_category_started,
+            # co.cancelation_date           = 
+            # co.cancelation_reason         = 
+            home_country               = fca.issuer_company.home_country,
+            securities_custody_country = fca.issuer_company.securities_custody_country,
+            issuer_status              = fca.issuer_company.issuer_status,
+            issuer_status_date         = fca.issuer_company.issuer_status_started,
+            controlling_interest       = fca.issuer_company.controlling_interest,
+            controlling_interest_date  = fca.issuer_company.controlling_interest_last_changed,
+            fiscal_year_closing_day    = fca.issuer_company.fiscal_year_end_day,
+            fiscal_year_closing_month  = fca.issuer_company.fiscal_year_end_month,
+            fiscal_year_change_date    = fca.issuer_company.fiscal_year_last_changed,
+            webpage                    = fca.issuer_company.webpage
+        )
 
-        return co
+class Document(models.Base):
+    __tablename__ = 'document'
+
+    id             = sa.Column(sa.Integer, primary_key=True, autoincrement=False)
+    cnpj           = sa.Column(sa.Integer, sa.ForeignKey('public_company.cnpj'), nullable=False)
+    type           = sa.Column(sa.Enum(datatypes.DocumentType),                  nullable=False)
+    version        = sa.Column(sa.Integer,                                       nullable=False)
+    reference_date = sa.Column(sa.Date,                                          nullable=False)
+    receipt_date   = sa.Column(sa.Date,                                          nullable=False)
+    url            = sa.Column(sa.String)
+
+    company          = sa_orm.relationship('PublicCompany',   back_populates='documents', uselist=False)
+    statements       = sa_orm.relationship('Statement',       back_populates='document',  uselist=True)
+    income_statement = sa_orm.relationship('IncomeStatement', back_populates='document',  uselist=False)
+    balance_sheet    = sa_orm.relationship('BalanceSheet',    back_populates='document',  uselist=False)
+
+    @staticmethod
+    def fromDfpItr(dfpitr: cvm.datatypes.DFPITR) -> Document:
+        statements = []
+
+        for balance_type in cvm.datatypes.BalanceType:
+            mapping = dfpitr[balance_type]
+
+            for collection in mapping.values():
+                statements += Statement.fromCollection(
+                    balance_type = balance_type,
+                    collection   = collection
+                )
+
+        return Document(
+            id             = dfpitr.id,
+            cnpj           = dfpitr.cnpj,
+            type           = dfpitr.type,
+            version        = dfpitr.version,
+            reference_date = dfpitr.reference_date,
+            receipt_date   = dfpitr.receipt_date,
+            url            = dfpitr.url,
+            statements     = statements
+        )
 
 class Statement(models.Base):
     __tablename__ = 'statement'
 
     id                = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    cnpj              = sa.Column(sa.Integer, sa.ForeignKey('public_company.cnpj'), nullable=False)
-    statement_type    = sa.Column(sa.Enum(datatypes.StatementType), nullable=False)
-    document_type     = sa.Column(sa.Enum(datatypes.DocumentType),  nullable=False)
-    document_id       = sa.Column(sa.Integer,                       nullable=False)
-    balance_type      = sa.Column(sa.Enum(datatypes.BalanceType),   nullable=False)
-    version           = sa.Column(sa.Integer,                       nullable=False)
-    reference_date    = sa.Column(sa.Date,                          nullable=False)
+    document_id       = sa.Column(sa.Integer, sa.ForeignKey('document.id'), nullable=False)
+    statement_type    = sa.Column(sa.Enum(datatypes.StatementType),         nullable=False)
+    balance_type      = sa.Column(sa.Enum(datatypes.BalanceType),           nullable=False)
     fiscal_year_start = sa.Column(sa.Date)
-    fiscal_year_end   = sa.Column(sa.Date,                          nullable=False)
+    fiscal_year_end   = sa.Column(sa.Date,                                  nullable=False)
 
-    accounts = sa.orm.relationship('Account')
+    document = sa_orm.relationship('Document', back_populates='statements', uselist=False)
+    accounts = sa_orm.relationship('Account',  back_populates='statement',  uselist=True)
+
+    @staticmethod
+    def fromCollection(balance_type: cvm.datatypes.BalanceType,
+                       collection: cvm.datatypes.StatementCollection
+    ) -> typing.List[Statement]:
+
+        def makeStatement(accounts: cvm.datatypes.AccountTuple):
+            stmt = Statement(
+                balance_type = balance_type,
+                accounts     = [Account.fromCVM(cvm_acc) for cvm_acc in accounts.normalized()]
+            )
+
+            return stmt
+
+        bpa = collection.bpa
+        bpp = collection.bpp
+        dre = collection.dre
+        dra = collection.dra
+        
+        stmts = []
+
+        stmt = makeStatement(bpa.accounts)
+        stmt.statement_type    = cvm.datatypes.StatementType.BPA
+        stmt.fiscal_year_start = None
+        stmt.fiscal_year_end   = bpa.fiscal_year_end
+        stmts.append(stmt)
+
+        stmt = makeStatement(bpp.accounts)
+        stmt.statement_type    = cvm.datatypes.StatementType.BPP
+        stmt.fiscal_year_start = None
+        stmt.fiscal_year_end   = bpp.fiscal_year_end
+        stmts.append(stmt)
+
+        stmt = makeStatement(dre.accounts)
+        stmt.statement_type    = cvm.datatypes.StatementType.DRE
+        stmt.fiscal_year_start = dre.fiscal_year_start
+        stmt.fiscal_year_end   = dre.fiscal_year_end
+        stmts.append(stmt)
+
+        stmt = makeStatement(dra.accounts)
+        stmt.statement_type    = cvm.datatypes.StatementType.DRA
+        stmt.fiscal_year_start = dra.fiscal_year_start
+        stmt.fiscal_year_end   = dra.fiscal_year_end
+        stmts.append(stmt)
+
+        # TODO: other statement types
+
+        return stmts
 
     @staticmethod
     def findByDocument(document_type: datatypes.DocumentType,
@@ -146,67 +230,14 @@ class Statement(models.Base):
                        .one_or_none()
             )
 
-    @staticmethod
-    def fromDocument(doc: cvm.datatypes.DFPITR, balance_type: cvm.datatypes.BalanceType) -> typing.List[Statement]:
-        mapping = doc[balance_type]
-
-        if len(mapping) == 0:
-            return []
-        
-        stmts = []
-
-        def makeStatement(accounts: cvm.datatypes.AccountTuple):
-            stmt = Statement()
-            stmt.cnpj           = doc.cnpj
-            stmt.document_type  = doc.type
-            stmt.document_id    = doc.id
-            stmt.balance_type   = balance_type
-            stmt.version        = doc.version
-            stmt.reference_date = doc.reference_date
-            stmt.accounts       = [Account.fromCVM(cvm_acc) for cvm_acc in accounts.normalized()]
-
-            return stmt
-        
-        coll = mapping[cvm.datatypes.FiscalYearOrder.LAST]
-
-        stmt = makeStatement(coll.bpa.accounts)
-        stmt.statement_type    = cvm.datatypes.StatementType.BPA
-        stmt.fiscal_year_start = None
-        stmt.fiscal_year_end   = coll.bpa.fiscal_year_end
-        stmts.append(stmt)
-
-        stmt = makeStatement(coll.bpp.accounts)
-        stmt.statement_type    = cvm.datatypes.StatementType.BPP
-        stmt.fiscal_year_start = None
-        stmt.fiscal_year_end   = coll.bpp.fiscal_year_end
-        stmts.append(stmt)
-
-        stmt = makeStatement(coll.dre.accounts)
-        stmt.statement_type    = cvm.datatypes.StatementType.DRE
-        stmt.fiscal_year_start = coll.dre.fiscal_year_start
-        stmt.fiscal_year_end   = coll.dre.fiscal_year_end
-        stmts.append(stmt)
-
-        stmt = makeStatement(coll.dre.accounts)
-        stmt.statement_type    = cvm.datatypes.StatementType.DRA
-        stmt.fiscal_year_start = coll.dra.fiscal_year_start
-        stmt.fiscal_year_end   = coll.dra.fiscal_year_end
-        stmts.append(stmt)
-
-        # TODO: other statement types
-
-        return stmts
-
-mapper_registry = sa.orm.registry()
-
-@mapper_registry.mapped
+@models.mapper_registry.mapped
 @dataclasses.dataclass
 class IncomeStatement(cvm.balances.IncomeStatement):
     __table__ = sa.Table(
         'income_statement',
         models.Base.metadata,
         sa.Column('id',                            sa.Integer, primary_key=True, autoincrement=True),
-        sa.Column('dre_id',                        sa.Integer, sa.ForeignKey('statement.id'), nullable=False),
+        sa.Column('document_id',                   sa.Integer, sa.ForeignKey('document.id'), nullable=False),
         sa.Column('revenue',                       sa.Integer, nullable=False),
         sa.Column('costs',                         sa.Integer, nullable=False),
         sa.Column('gross_profit',                  sa.Integer, nullable=False),
@@ -219,28 +250,27 @@ class IncomeStatement(cvm.balances.IncomeStatement):
         sa.Column('tax_expenses',                  sa.Integer, nullable=False),
         sa.Column('continuing_operation_result',   sa.Integer, nullable=False),
         sa.Column('discontinued_operation_result', sa.Integer, nullable=False),
-        sa.Column('net_income',                    sa.Integer, nullable=False),
+        sa.Column('net_income',                    sa.Integer, nullable=False)
     )
 
-    id: int     = dataclasses.field(init=False)
-    dre_id: int = dataclasses.field(init=False)
-    dre: Statement
+    id: int            = dataclasses.field(init=False)
+    document_id: int   = dataclasses.field(init=False)
+    document: Document = dataclasses.field(init=False)
 
     __mapper_args__ = {
         'properties': {
-            'dre': sa.orm.relationship(Statement)
+            'document': sa_orm.relationship('Document', back_populates='income_statement', uselist=False)
         }
     }
 
-@mapper_registry.mapped
+@models.mapper_registry.mapped
 @dataclasses.dataclass
 class BalanceSheet(cvm.balances.BalanceSheet):
     __table__ = sa.Table(
         'balance_sheet',
         models.Base.metadata,
         sa.Column('id',                             sa.Integer, primary_key=True, autoincrement=True),
-        sa.Column('bpa_id',                         sa.Integer, sa.ForeignKey('statement.id'), nullable=False),
-        sa.Column('bpp_id',                         sa.Integer, sa.ForeignKey('statement.id'), nullable=False),
+        sa.Column('document_id',                    sa.Integer, sa.ForeignKey('document.id'), nullable=False),
         sa.Column('total_assets',                   sa.Integer, nullable=False),
         sa.Column('current_assets',                 sa.Integer),
         sa.Column('cash_and_cash_equivalents',      sa.Integer, nullable=False),
@@ -258,16 +288,13 @@ class BalanceSheet(cvm.balances.BalanceSheet):
         sa.Column('equity',                         sa.Integer, nullable=False)
     )
 
-    id: int     = dataclasses.field(init=False)
-    bpa_id: int = dataclasses.field(init=False)
-    bpp_id: int = dataclasses.field(init=False)
-    bpa: Statement
-    bpp: Statement
+    id: int            = dataclasses.field(init=False)
+    document_id: int   = dataclasses.field(init=False)
+    document: Document = dataclasses.field(init=False)
 
     __mapper_args__ = {
         'properties': {
-            'bpa': sa.orm.relationship(Statement, foreign_keys=[__table__.c.bpa_id]),
-            'bpp': sa.orm.relationship(Statement, foreign_keys=[__table__.c.bpp_id])
+            'document': sa_orm.relationship('Document', back_populates='balance_sheet', uselist=False)
         }
     }
 
@@ -279,6 +306,8 @@ class Account(models.Base):
     code         = sa.Column(sa.String,  nullable=False)
     name         = sa.Column(sa.String,  nullable=False)
     quantity     = sa.Column(sa.Float,   nullable=False)
+
+    statement = sa_orm.relationship('Statement', back_populates='accounts', uselist=False)
 
     @staticmethod
     def fromCVM(account: cvm.datatypes.Account):
