@@ -43,7 +43,7 @@ class PublicCompany(models.Base):
     fiscal_year_change_date    = sa.Column(sa.Date)
     webpage                    = sa.Column(sa.String)
 
-    documents = sa_orm.relationship('Document', back_populates='company', uselist=True)
+    documents: typing.List['Document'] = sa_orm.relationship('Document', back_populates='company', uselist=True)
 
     @staticmethod
     def findByCNPJ(cnpj: int) -> typing.Optional[PublicCompany]:
@@ -128,10 +128,10 @@ class Document(models.Base):
     receipt_date   = sa.Column(sa.Date,                                          nullable=False)
     url            = sa.Column(sa.String)
 
-    company          = sa_orm.relationship('PublicCompany',   back_populates='documents', uselist=False)
-    statements       = sa_orm.relationship('Statement',       back_populates='document',  uselist=True)
-    income_statement = sa_orm.relationship('IncomeStatement', back_populates='document',  uselist=False)
-    balance_sheet    = sa_orm.relationship('BalanceSheet',    back_populates='document',  uselist=False)
+    company:          PublicCompany                      = sa_orm.relationship('PublicCompany',   back_populates='documents', uselist=False)
+    statements:       typing.List['Statement']           = sa_orm.relationship('Statement',       back_populates='document',  uselist=True)
+    income_statement: typing.Optional['IncomeStatement'] = sa_orm.relationship('IncomeStatement', back_populates='document',  uselist=False)
+    balance_sheet:    typing.Optional['BalanceSheet']    = sa_orm.relationship('BalanceSheet',    back_populates='document',  uselist=False)
 
     @staticmethod
     def fromDfpItr(dfpitr: cvm.datatypes.DFPITR) -> Document:
@@ -167,8 +167,8 @@ class Statement(models.Base):
     fiscal_year_start = sa.Column(sa.Date)
     fiscal_year_end   = sa.Column(sa.Date,                                  nullable=False)
 
-    document = sa_orm.relationship('Document', back_populates='statements', uselist=False)
-    accounts = sa_orm.relationship('Account',  back_populates='statement',  uselist=True)
+    document: Document             = sa_orm.relationship('Document', back_populates='statements', uselist=False)
+    accounts: typing.List[Account] = sa_orm.relationship('Account',  back_populates='statement',  uselist=True)
 
     @staticmethod
     def fromCollection(balance_type: cvm.datatypes.BalanceType,
@@ -307,7 +307,7 @@ class Account(models.Base):
     name         = sa.Column(sa.String,  nullable=False)
     quantity     = sa.Column(sa.Float,   nullable=False)
 
-    statement = sa_orm.relationship('Statement', back_populates='accounts', uselist=False)
+    statement: Statement = sa_orm.relationship('Statement', back_populates='accounts', uselist=False)
 
     @staticmethod
     def fromCVM(account: cvm.datatypes.Account):
