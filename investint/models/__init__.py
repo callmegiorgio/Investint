@@ -14,3 +14,7 @@ from investint.models.qt.mapped_breakdown_table   import MappedBreakdownTableMod
 from investint.models.qt.company_statement        import CompanyStatementModel, CompanyStatementPeriod
 from investint.models.qt.company_income_statement import CompanyIncomeStatementModel
 from investint.models.qt.company_balance_sheet    import CompanyBalanceSheetModel
+from investint.models.qt.company_indicator        import CompanyIndicatorModel
+from investint.models.qt.company_indebtedness     import CompanyIndebtednessModel
+from investint.models.qt.company_efficiency       import CompanyEfficiencyModel
+from investint.models.qt.company_profitability    import CompanyProfitabilityModel

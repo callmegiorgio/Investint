@@ -10,5 +10,6 @@ from investint.widgets.company.cvm_statement       import CompanyCvmStatementWid
 from investint.widgets.company.statement_period    import CompanyStatementPeriodSelector
 from investint.widgets.company.statement           import CompanyStatementWidget
 from investint.widgets.company.financials          import CompanyFinancialsWidget
+from investint.widgets.company.indicator           import CompanyIndicatorWidget
 from investint.widgets.company.widget              import CompanyWidget
 from investint.widgets.main_window                 import MainWindow
