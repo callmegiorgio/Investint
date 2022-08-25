@@ -46,3 +46,6 @@ class SqlWorker(importing.Worker):
             self.session().commit()
         except sa_exc.SQLAlchemyError:
             self.sendTracebackMessage()
+
+    def rollback(self):
+        self.session().rollback()

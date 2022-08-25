@@ -21,7 +21,7 @@ class ImportingWindow(QtWidgets.QWidget):
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None):
         super().__init__(parent=parent, flags=QtCore.Qt.WindowType.Window)
 
-        self._worker_thread = None
+        self._worker_thread = QtCore.QThread()
         self._filename_filter = 'Any File (*)'
 
         self._initWidgets()
@@ -37,7 +37,7 @@ class ImportingWindow(QtWidgets.QWidget):
 
         self._import_btn = QtWidgets.QPushButton('Import')
         self._import_btn.setEnabled(False)
-        self._import_btn.clicked.connect(self.startImporting)
+        self._import_btn.clicked.connect(self._onImportButtonClicked)
 
         self._output_edit = QtWidgets.QTextEdit()
         self._output_edit.setReadOnly(True)
@@ -71,6 +71,9 @@ class ImportingWindow(QtWidgets.QWidget):
     def createWorker(self) -> importing.Worker:
         return importing.Worker()
 
+    def isImporting(self):
+        return self._worker_thread.isRunning()
+
     def startImporting(self):
         """Starts the importing process.
 
@@ -85,7 +88,7 @@ class ImportingWindow(QtWidgets.QWidget):
         the worker thread is stopped and `importingFinished` is emitted.
         """
 
-        if self._worker_thread is not None and self._worker_thread.isRunning():
+        if self.isImporting():
             return
 
         filepath = self.filepath()
@@ -94,10 +97,8 @@ class ImportingWindow(QtWidgets.QWidget):
             return
 
         def toggleInput(enabled: bool):
-            self._import_btn.setEnabled(enabled)
+            self._import_btn.setText('Import' if enabled else 'Stop')
             self._filepath_edit.setEnabled(enabled)
-
-        self._worker_thread = QtCore.QThread()
         
         self._worker = self.createWorker()
         self._worker.moveToThread(self._worker_thread)
@@ -113,6 +114,12 @@ class ImportingWindow(QtWidgets.QWidget):
         self.importingStarted.emit()
         self._worker_thread.start()
 
+    def stopImporting(self):
+        if not self.isImporting() or self._worker.isStopRequested():
+            return
+
+        self._worker.stop()
+
     @QtCore.pyqtSlot(str)
     def _onFilepathTextEdited(self, text: str):
         self._import_btn.setEnabled(text != '')
@@ -126,8 +133,14 @@ class ImportingWindow(QtWidgets.QWidget):
         self._import_btn.setEnabled(filepath != '')
 
     @QtCore.pyqtSlot()
+    def _onImportButtonClicked(self):
+        if self.isImporting():
+            self.stopImporting()
+        else:
+            self.startImporting()
+
+    @QtCore.pyqtSlot()
     def _onWorkerThreadFinished(self):
         self._worker.deleteLater()
-        self._worker_thread.deleteLater()
-        self._worker_thread = None
+        self._worker_thread.disconnect()
         self.importingFinished.emit()

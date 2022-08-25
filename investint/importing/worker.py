@@ -1,4 +1,5 @@
 import traceback
+import typing
 from PyQt5 import QtCore
 
 class Worker(QtCore.QObject):
@@ -14,18 +15,34 @@ class Worker(QtCore.QObject):
     or `sendTracebackMessage()`, which sends a traceback as a message.
 
     Subclasses of this class may implement the method `read()`, which must
-    emit the signal `finished` immediately before it returns to let the worker
-    thread know it should quit.
+    call `_finish()` immediately before it returns to let the worker thread
+    know it should quit.
     """
 
     messaged = QtCore.pyqtSignal(str)
     finished = QtCore.pyqtSignal()
 
+    def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
+        super().__init__(parent=parent)
+
+        self._stop_requested = False
+
     def read(self, filepath: str):
-        self.finished.emit()
+        self._finish()
 
     def sendMessage(self, message: str):
         self.messaged.emit(message)
 
     def sendTracebackMessage(self):
         self.messaged.emit(traceback.format_exc())
+
+    def isStopRequested(self):
+        return self._stop_requested
+
+    @QtCore.pyqtSlot()
+    def stop(self):
+        self._stop_requested = True
+
+    def _finish(self):
+        self.finished.emit()
+        self._stop_requested = False

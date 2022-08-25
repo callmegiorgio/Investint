@@ -26,7 +26,7 @@ class ZipWorker(importing.Worker):
             self.sendMessage(f"Could not open file '{filepath}': {exc.__class__.__name__} {str(exc)}")
             
         finally:
-            self.finished.emit()
+            self._finish()
 
     def readZipFile(self, file: zipfile.ZipFile):
         pass

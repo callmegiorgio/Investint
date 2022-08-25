@@ -10,9 +10,13 @@ class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
         """Implements `readZipFile()` to import DFP/ITR documents into the database."""
 
         try:
-            for dfpitr in itertools.islice(cvm.csvio.dfpitr_reader(file), 10):
-            # for dfpitr in cvm.csvio.dfpitr_reader(file):
+            # for dfpitr in itertools.islice(cvm.csvio.dfpitr_reader(file), 10):
+            for dfpitr in cvm.csvio.dfpitr_reader(file):
                 self.readDfpItr(dfpitr)
+
+                if self.isStopRequested():
+                    self.rollback()
+                    return
 
         except Exception:
             self.sendTracebackMessage()

@@ -16,6 +16,10 @@ class FcaWorker(importing.ZipWorker, importing.SqlWorker):
             for fca in cvm.csvio.fca_reader(file):
                 self.readDocument(fca)
 
+                if self.isStopRequested():
+                    self.rollback()
+                    return
+
         except Exception:
             self.sendTracebackMessage()
         else:
