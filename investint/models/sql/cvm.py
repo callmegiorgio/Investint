@@ -52,32 +52,24 @@ class PublicCompany(models.Base):
         return session.query(PublicCompany).filter(PublicCompany.cnpj == cnpj).one_or_none()
 
     @staticmethod
-    def findInfoByExpression(expr: str) -> typing.List[typing.Tuple[int, str]]:
-        if expr == '':
+    def findByExpression(expression: str) -> typing.List[PublicCompany]:
+        if expression == '':
             return []
 
-        names = []
-
         stmt = (
-            sa.select(
-                PublicCompany.cnpj,
-                PublicCompany.corporate_name
-                )
-                .where(
-                    sa.or_(
-                        PublicCompany.corporate_name.like(expr + '%'),
-                        sa.cast(PublicCompany.cvm_code, sa.String) == expr
-                    )
-                )
+            sa.select(PublicCompany)
+               .where(
+                  sa.or_(
+                      PublicCompany.corporate_name.like('%' + expression + '%'),
+                      sa.cast(PublicCompany.cvm_code, sa.String) == expression
+                  )
+               )
         )
 
         session = models.get_session()
         results = session.execute(stmt).all()
 
-        for row in results:
-            names.append(tuple(row))
-
-        return names
+        return [row[0] for row in results]
 
     @staticmethod
     def exists(cnpj: int) -> bool:

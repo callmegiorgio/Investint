@@ -12,7 +12,7 @@ class CompanyWidget(QtWidgets.QWidget):
 
     def _initWidgets(self):
         self._company_drop_down = widgets.CompanyDropDown()
-        self._company_drop_down.companyChanged.connect(self._onCompanyChanged)
+        self._company_drop_down.companyChanged.connect(self.setCompany)
 
         self._general_info = widgets.CompanyGeneralInformationWidget()
         self._indicators   = widgets.CompanyIndicatorWidget()
@@ -31,24 +31,12 @@ class CompanyWidget(QtWidgets.QWidget):
         self.setLayout(main_layout)
 
     def refresh(self):
-        cnpj = self._company_drop_down.currentCompany()
+        co = self._company_drop_down.currentCompany()
 
-        if cnpj is not None:
-            self.setCompany(cnpj)
+        if co is not None:
+            self.setCompany(co)
 
-    def setCompany(self, cnpj: cvm.datatypes.CNPJ):
-        co = models.PublicCompany.findByCNPJ(cnpj)
-
-        if co is None:
-            print('no company found with cnpj:', cnpj)
-            return
-
+    def setCompany(self, co: models.PublicCompany):
         self._general_info.setCompany(co)
         self._indicators.setCompany(co)
         self._financials.setCompany(co)
-
-    @QtCore.pyqtSlot(cvm.datatypes.CNPJ)
-    def _onCompanyChanged(self, cnpj: cvm.datatypes.CNPJ):
-        self.setCompany(cnpj)
-
-        
