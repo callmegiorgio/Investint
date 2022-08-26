@@ -8,6 +8,8 @@ class ImportingFcaWindow(widgets.ImportingWindow):
 
         self.setWindowTitle('Import FCA')
         self.setFileNameFilter('FCA File (*.zip)')
+        
+        self.settingsButton().setVisible(False)
     
     def createWorker(self) -> importing.Worker:
         return importing.FcaWorker()

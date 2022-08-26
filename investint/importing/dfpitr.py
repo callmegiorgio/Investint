@@ -1,22 +1,46 @@
-import itertools
 import cvm
+import typing
 import zipfile
+from PyQt5     import QtCore
 from investint import importing, models
 
 class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
     """Implements a `Worker` that imports data from DFP/ITR files."""
 
+    def __init__(self, listed_cnpjs: typing.Iterable[int], parent: typing.Optional[QtCore.QObject] = None) -> None:
+        super().__init__(parent=parent)
+
+        self._listed_cnpjs = set(listed_cnpjs)
+        self._is_filtering = len(self._listed_cnpjs) > 0
+
     def readZipFile(self, file: zipfile.ZipFile):
         """Implements `readZipFile()` to import DFP/ITR documents into the database."""
 
         try:
-            # for dfpitr in itertools.islice(cvm.csvio.dfpitr_reader(file), 10):
+            last_cnpj = None
+
             for dfpitr in cvm.csvio.dfpitr_reader(file):
                 self.readDfpItr(dfpitr)
 
                 if self.isStopRequested():
                     self.rollback()
                     return
+
+                if not self._is_filtering:
+                    continue
+                
+                if last_cnpj is None:
+                    last_cnpj = dfpitr.cnpj
+                elif last_cnpj == dfpitr.cnpj:
+                    continue
+                else:
+                    self._listed_cnpjs.discard(last_cnpj)
+                    
+                    if len(self._listed_cnpjs) == 0:
+                        self.sendMessage('Finished reading all documents with the given CNPJs')
+                        break
+                    else:
+                        last_cnpj = dfpitr.cnpj
 
         except Exception:
             self.sendTracebackMessage()
@@ -39,6 +63,10 @@ class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
         )
 
         self.sendMessage('Reading ' + summary)
+
+        if self._is_filtering and dfpitr.cnpj not in self._listed_cnpjs:
+            self.sendMessage('...unlisted CNPJ, skipping')
+            return
 
         doc = models.Document.fromDfpItr(dfpitr)
         

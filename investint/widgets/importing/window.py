@@ -37,6 +37,9 @@ class ImportingWindow(QtWidgets.QWidget):
         browse_action = self._filepath_edit.addAction(browse_icon, QtWidgets.QLineEdit.ActionPosition.TrailingPosition)
         browse_action.triggered.connect(self._onBrowseFileAction)
 
+        self._settings_button = QtWidgets.QToolButton()
+        self._settings_button.setIcon(fugue.icon('gear'))
+
         self._import_btn = QtWidgets.QPushButton('Import')
         self._import_btn.setEnabled(False)
         self._import_btn.clicked.connect(self._onImportButtonClicked)
@@ -45,12 +48,20 @@ class ImportingWindow(QtWidgets.QWidget):
         self._output_edit.setReadOnly(True)
 
     def _initLayouts(self):
-        main_layout = QtWidgets.QGridLayout()
-        main_layout.addWidget(self._filepath_edit, 0, 0)
-        main_layout.addWidget(self._import_btn,    0, 1)
-        main_layout.addWidget(self._output_edit,   1, 0, 4, 2)
+        upper_layout = QtWidgets.QHBoxLayout()
+        upper_layout.addWidget(self._filepath_edit)
+        upper_layout.addWidget(self._settings_button)
+        upper_layout.addWidget(self._import_btn)
+        upper_layout.setSpacing(2)
+        
+        main_layout = QtWidgets.QVBoxLayout()
+        main_layout.addLayout(upper_layout)
+        main_layout.addWidget(self._output_edit)
         
         self.setLayout(main_layout)
+
+    def settingsButton(self) -> QtWidgets.QToolButton:
+        return self._settings_button
 
     def setFileNameFilter(self, filter: str):
         self._filename_filter = filter
@@ -99,6 +110,7 @@ class ImportingWindow(QtWidgets.QWidget):
             return
 
         def toggleInput(enabled: bool):
+            self._settings_button.setEnabled(enabled)
             self._import_btn.setText('Import' if enabled else 'Stop')
             self._filepath_edit.setEnabled(enabled)
         
