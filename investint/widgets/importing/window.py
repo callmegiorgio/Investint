@@ -1,5 +1,6 @@
 import functools
 import typing
+import pyqt5_fugueicons as fugue
 from PyQt5     import QtCore, QtGui, QtWidgets
 from investint import importing
 
@@ -32,7 +33,7 @@ class ImportingWindow(QtWidgets.QWidget):
         self._filepath_edit.setPlaceholderText('Path to file...')
         self._filepath_edit.textEdited.connect(self._onFilepathTextEdited)
 
-        browse_icon   = self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_FileDialogStart)
+        browse_icon   = fugue.icon('folder-open-document')
         browse_action = self._filepath_edit.addAction(browse_icon, QtWidgets.QLineEdit.ActionPosition.TrailingPosition)
         browse_action.triggered.connect(self._onBrowseFileAction)
 
