@@ -32,7 +32,8 @@ class ImportingWindow(QtWidgets.QWidget):
         self._filepath_edit.setPlaceholderText('Path to file...')
         self._filepath_edit.textEdited.connect(self._onFilepathTextEdited)
 
-        browse_action = self._filepath_edit.addAction(QtGui.QIcon('TODO'), QtWidgets.QLineEdit.ActionPosition.TrailingPosition)
+        browse_icon   = self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_FileDialogStart)
+        browse_action = self._filepath_edit.addAction(browse_icon, QtWidgets.QLineEdit.ActionPosition.TrailingPosition)
         browse_action.triggered.connect(self._onBrowseFileAction)
 
         self._import_btn = QtWidgets.QPushButton('Import')
