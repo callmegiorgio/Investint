@@ -76,6 +76,8 @@ class ImportingSelectionDialog(QtWidgets.QDialog):
 
         if co is not None:
             self.addCompany(co)
+            self._company_drop_down.setCurrentCompany(None)
+            self._company_drop_down.setFocus()
 
     @QtCore.pyqtSlot()
     def _onRemoveButtonClicked(self):

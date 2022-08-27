@@ -35,6 +35,36 @@ class CompanyDropDown(QtWidgets.QWidget):
 
         self.setLayout(main_layout)
 
+    def setCurrentCompany(self, company: typing.Optional[models.PublicCompany]):
+        """Sets `company` as the current company being displayed.
+
+        If `company` is `None`, displays an empty string. Otherwise,
+        checks if `company` is in the completion list stored by this
+        instance. If found, sets that completion text for that company
+        to be displayed. If not found, returns with no effect.
+        """
+
+        if company is self.currentCompany():
+            return
+        
+        source_index = QtCore.QModelIndex()
+        
+        if company is not None:
+            for row in range(self._model.rowCount()):
+                source_index  = self._model.index(row, 0)
+                model_company = self._model.data(source_index, QtCore.Qt.ItemDataRole.UserRole + 1)
+
+                if company is model_company:
+                    break
+
+            if not source_index.isValid():
+                return
+
+        proxy_index = self._completer.completionModel().mapFromSource(source_index)
+
+        self._completer.setCurrentRow(proxy_index.row())
+        self._edit.setText(source_index.data() or '')
+
     def currentCompany(self) -> typing.Optional[models.PublicCompany]:
         # It seems it is not possible to use `self._completer.currentIndex()`,
         # because it returns an index of a proxy model that has a broken
