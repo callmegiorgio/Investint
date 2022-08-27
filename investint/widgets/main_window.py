@@ -1,6 +1,7 @@
 import functools
+import pyqt5_fugueicons as fugue
 import typing
-from PyQt5     import QtCore, QtWidgets
+from PyQt5     import QtWidgets
 from investint import widgets
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -11,14 +12,25 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _initWidgets(self):
         self.setWindowTitle('Investint')
+        self.setWindowIcon(fugue.icon('application'))
         self._initMenuBar()
         self._initCentralWidget()
 
     def _initMenuBar(self):
-        menu_bar  = self.menuBar()
-        file_menu = menu_bar.addMenu('File')
-        file_menu.addAction('Import companies from FCA...',      functools.partial(self.showImportingWindow, widgets.ImportingFcaWindow))
-        file_menu.addAction('Import statements from DFP/ITR...', functools.partial(self.showImportingWindow, widgets.ImportingDfpItrWindow))
+        menu_bar    = self.menuBar()
+        file_menu   = menu_bar.addMenu('File')
+        import_menu = file_menu.addMenu(fugue.icon('database-import'), 'Import')
+        import_menu.addAction(
+            fugue.icon('building'),
+            'Companies from FCA...',
+            functools.partial(self.showImportingWindow, widgets.ImportingFcaWindow)
+        )
+        
+        import_menu.addAction(
+            fugue.icon('reports-stack'),
+            'Statements from DFP/ITR...',
+            functools.partial(self.showImportingWindow, widgets.ImportingDfpItrWindow)
+        )
 
     def _initCentralWidget(self):
         self._company_widget = widgets.CompanyWidget()
