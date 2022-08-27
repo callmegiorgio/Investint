@@ -1,5 +1,5 @@
 import typing
-from PyQt5     import QtCore, QtWidgets
+from PyQt5     import QtWidgets
 from investint import widgets, models
 import cvm
 
@@ -31,47 +31,25 @@ class CompanyGeneralInformationWidget(QtWidgets.QWidget):
         self._webpage_lbl                    = widgets.DoubleLabel('<b>Página da Web</b>')
 
     def _initLayouts(self):
-        # This widget needs a SERIOUS improvement...
-        # but on my defense, argh, there are too many fields to show.
-
-        ids_layout = QtWidgets.QHBoxLayout()
-        ids_layout.addWidget(self._cnpj_lbl)
-        ids_layout.addWidget(self._cvm_code_lbl)
-
-        names_layout = QtWidgets.QHBoxLayout()
-        names_layout.addWidget(self._corporate_name_lbl)
-        names_layout.addWidget(self._prev_corp_name_lbl)
-        names_layout.addWidget(self._trade_name_lbl)
-
-        industry_layout = QtWidgets.QHBoxLayout()
-        industry_layout.addWidget(self._industry_lbl)
-        industry_layout.addWidget(self._activity_desc_lbl)
-
-        registration_layout = QtWidgets.QHBoxLayout()
-        registration_layout.addWidget(self._cvm_registration_date_lbl)
-        registration_layout.addWidget(self._cvm_registration_status_lbl)
-        registration_layout.addWidget(self._cvm_registration_categ_lbl)
-
-        cancelation_layout = QtWidgets.QHBoxLayout()
-        cancelation_layout.addWidget(self._cancelation_date_lbl)
-        cancelation_layout.addWidget(self._cancelation_reason_lbl)
-
-        countries_layout = QtWidgets.QHBoxLayout()
-        countries_layout.addWidget(self._home_country_lbl)
-        countries_layout.addWidget(self._securities_custody_country_lbl)
-
-        main_layout = QtWidgets.QVBoxLayout()
-        main_layout.addLayout(ids_layout)
-        main_layout.addLayout(names_layout)
-        main_layout.addWidget(self._establishment_date_lbl)
-        main_layout.addLayout(industry_layout)
-        main_layout.addLayout(registration_layout)
-        main_layout.addLayout(cancelation_layout)
-        main_layout.addLayout(countries_layout)
-        main_layout.addWidget(self._issuer_status_lbl)
-        main_layout.addWidget(self._fiscal_year_closing_date)
-        main_layout.addWidget(self._webpage_lbl)
-        main_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft)
+        main_layout = QtWidgets.QGridLayout()
+        main_layout.addWidget(self._cnpj_lbl,                       0, 0)
+        main_layout.addWidget(self._cvm_code_lbl,                   0, 1)
+        main_layout.addWidget(self._corporate_name_lbl,             1, 0)
+        main_layout.addWidget(self._prev_corp_name_lbl,             1, 1)
+        main_layout.addWidget(self._trade_name_lbl,                 1, 2)
+        main_layout.addWidget(self._industry_lbl,                   2, 0)
+        main_layout.addWidget(self._activity_desc_lbl,              2, 1)
+        main_layout.addWidget(self._cvm_registration_date_lbl,      3, 0)
+        main_layout.addWidget(self._cvm_registration_status_lbl,    3, 1)
+        main_layout.addWidget(self._cvm_registration_categ_lbl,     3, 2)
+        main_layout.addWidget(self._cancelation_date_lbl,           4, 0)
+        main_layout.addWidget(self._cancelation_reason_lbl,         4, 1)
+        main_layout.addWidget(self._home_country_lbl,               5, 0)
+        main_layout.addWidget(self._securities_custody_country_lbl, 5, 1)
+        main_layout.addWidget(self._establishment_date_lbl,         6, 0)
+        main_layout.addWidget(self._issuer_status_lbl,              7, 0)
+        main_layout.addWidget(self._fiscal_year_closing_date,       8, 0)
+        main_layout.addWidget(self._webpage_lbl,                    9, 0)
 
         self.setLayout(main_layout)
 
