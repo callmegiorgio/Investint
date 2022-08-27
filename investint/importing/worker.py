@@ -1,48 +1,114 @@
+import sys
+import threading
 import traceback
 import typing
 from PyQt5 import QtCore
 
-class Worker(QtCore.QObject):
+class WorkerSignals(QtCore.QObject):
+    error    = QtCore.pyqtSignal(type, Exception, str)
+    messaged = QtCore.pyqtSignal(str)
+    finished = QtCore.pyqtSignal(bool)
+
+class Worker(QtCore.QRunnable):
     """Imports file data.
     
-    This class is intended to be used along with the widget `ImportingWindow`
-    to import data from a file opened in a worker thread, so as to allow the
-    Qt GUI (which runs in the main thread) to be responsive while file data
-    is being processed.
+    The class `Worker` implements a `QRunnable` for reading a file on another
+    thread for the purpose of importing data. It is designed to be used along
+    with the widget `ImportingWindow`, so as to allow the Qt GUI (which runs
+    in the main thread) to be responsive while file data is being imported.
     
-    Messages related to progress changes or run-time errors may be sent to the
-    main thread by calling `sendMessage()`, which emits the signal `messaged`,
-    or `sendTracebackMessage()`, which sends a traceback as a message.
+    Subclasses may implement the methods `open()`, `reader()`, `readOne()`,
+    and `finish()`, all of which are invoked by a reimplementation of `run()`.
 
-    Subclasses of this class may implement the method `read()`, which must
-    call `_finish()` immediately before it returns to let the worker thread
-    know it should quit.
+    The implementation of `run()` calls `Worker.open()` to open a file-like
+    object, which is then passed to `reader()` to create an iterable reader
+    for reading the file's content. That reader is then iterated upon until
+    exausted or `stop()` is called, and each object produced by that reader
+    is passed to `readOne()`. Finally, `finish()` is called.
     """
 
-    messaged = QtCore.pyqtSignal(str)
-    finished = QtCore.pyqtSignal()
+    def __init__(self, filepath: str) -> None:
+        super().__init__()
 
-    def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
-        super().__init__(parent=parent)
+        self._filepath = filepath
+        self._signals  = WorkerSignals()
+        self._stop_ev  = threading.Event()
 
-        self._stop_requested = False
+    def open(self, filepath: str) -> typing.IO:
+        """Returns a file-like object from `filepath`."""
 
-    def read(self, filepath: str):
-        self._finish()
+        return open(filepath, 'r')
 
-    def sendMessage(self, message: str):
-        self.messaged.emit(message)
+    def reader(self, file: typing.IO) -> typing.Iterable[typing.Any]:
+        """Returns an object that reads data returned by `self.open()`."""
 
-    def sendTracebackMessage(self):
-        self.messaged.emit(traceback.format_exc())
+        return iter(file.readlines())
 
-    def isStopRequested(self):
-        return self._stop_requested
+    def readOne(self, obj: typing.Any):
+        """Reads one object yielded by an iteration of `reader()`.
+        
+        Raises `StopIteration` if the reading process has completed.
+        """
 
-    @QtCore.pyqtSlot()
+        pass
+
+    def finish(self, completed: bool):
+        """Finishes the reading process.
+        
+        If `completed` is `False`, this method was called as a result of
+        `stop()`. Otherwise, it was called due to exaustion of `reader()`.
+        """
+
+        pass
+
+    def read(self, file: typing.IO) -> bool:
+        """Reads `file` in a loop.
+        
+        Returns `False` if reading stopped due to `stop()` being
+        called, and `True` if due to exaustion of `reader(file)`.
+        """
+
+        reader = self.reader(file)
+
+        while True:
+            if self._stop_ev.is_set():
+                return False
+
+            try:
+                self.readOne(next(reader))
+            except StopIteration:
+                break
+
+        return True
+
     def stop(self):
-        self._stop_requested = True
+        """Stops the file-reading process, if any."""
 
-    def _finish(self):
-        self.finished.emit()
-        self._stop_requested = False
+        self._stop_ev.set()
+
+    def signals(self) -> WorkerSignals:
+        """Returns an object that contains the signals emitted by this instance."""
+
+        return self._signals
+
+    def emitMessage(self, message: str):
+        self.signals().messaged.emit(message)
+
+    ################################################################################
+    # Overriden methods
+    ################################################################################
+    def run(self) -> None:
+        try:
+            with self.open(self._filepath) as file:
+                completed = self.read(file)
+
+        except:
+            exc_type, exc_value = sys.exc_info()[:2]
+            exc_desc            = traceback.format_exc()
+
+            QtCore.qCritical(exc_desc)
+            self.signals().error.emit(exc_type, exc_value, exc_desc)
+
+        else:
+            self.finish(completed)
+            self.signals().finished.emit(completed)

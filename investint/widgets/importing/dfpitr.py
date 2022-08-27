@@ -13,8 +13,10 @@ class ImportingDfpItrWindow(widgets.ImportingWindow):
 
         self.settingsButton().clicked.connect(self._onSettingsButtonClicked)
 
-    def createWorker(self) -> importing.Worker:
-        return importing.DfpItrWorker(co.cnpj for co in self._companies)
+    def createWorker(self, filepath: str) -> importing.Worker:
+        listed_cnpjs = (co.cnpj for co in self._companies)
+
+        return importing.DfpItrWorker(listed_cnpjs, filepath)
 
     @QtCore.pyqtSlot()
     def _onSettingsButtonClicked(self):

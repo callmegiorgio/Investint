@@ -1,53 +1,45 @@
 import cvm
 import typing
-import zipfile
-from PyQt5     import QtCore
 from investint import importing, models
 
 class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
     """Implements a `Worker` that imports data from DFP/ITR files."""
 
-    def __init__(self, listed_cnpjs: typing.Iterable[int], parent: typing.Optional[QtCore.QObject] = None) -> None:
-        super().__init__(parent=parent)
+    def __init__(self, listed_cnpjs: typing.Iterable[int], filepath: str) -> None:
+        super().__init__(filepath=filepath)
 
         self._listed_cnpjs = set(listed_cnpjs)
         self._is_filtering = len(self._listed_cnpjs) > 0
+        self._last_cnpj    = None
 
-    def readZipFile(self, file: zipfile.ZipFile):
-        """Implements `readZipFile()` to import DFP/ITR documents into the database."""
+    ################################################################################
+    # Overriden methods
+    ################################################################################
+    def reader(self, file: typing.IO) -> typing.Iterable[typing.Any]:
+        """Reimplements `Worker.reader()` to return a DFP/ITR document reader."""
 
-        try:
-            last_cnpj = None
+        return cvm.csvio.dfpitr_reader(file)
 
-            for dfpitr in cvm.csvio.dfpitr_reader(file):
-                self.readDfpItr(dfpitr)
+    def readOne(self, obj: typing.Any):
+        """Reimplements `Worker.readOne()` to read and import a DFP/ITR document."""
 
-                if self.isStopRequested():
-                    self.rollback()
-                    return
+        dfpitr: cvm.datatypes.DFPITR = obj
 
-                if not self._is_filtering:
-                    continue
-                
-                if last_cnpj is None:
-                    last_cnpj = dfpitr.cnpj
-                elif last_cnpj == dfpitr.cnpj:
-                    continue
-                else:
-                    self._listed_cnpjs.discard(last_cnpj)
-                    
-                    if len(self._listed_cnpjs) == 0:
-                        self.sendMessage('Finished reading all documents with the given CNPJs')
-                        break
-                    else:
-                        last_cnpj = dfpitr.cnpj
+        summary = (
+            f"{dfpitr.type.name} id {dfpitr.id} by company '{dfpitr.company_name}' "
+            f"(version: {dfpitr.version})"
+        )
 
-        except Exception:
-            self.sendTracebackMessage()
+        self.emitMessage('Reading ' + summary)
+
+        if self._is_filtering and dfpitr.cnpj not in self._listed_cnpjs:
+            self.emitMessage('...unlisted CNPJ, skipping')
         else:
-            self.commit()
+            self.importDocument(dfpitr)
 
-    def readDfpItr(self, dfpitr: cvm.datatypes.DFPITR):
+        self._updateListedCnpjs(dfpitr.cnpj)
+
+    def importDocument(self, dfpitr: cvm.datatypes.DFPITR):
         """First, creates the following ORM-mapped objects:
         - `models.Document` from `dfpitr`;
         - `models.Statement` for each financial statement in `dfpitr`;
@@ -57,28 +49,17 @@ class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
         Then, for each ORM-mapped object `o`, calls `merge(o)`.
         """
 
-        summary = (
-            f"{dfpitr.type.name} id {dfpitr.id} by company '{dfpitr.company_name}' "
-            f"(version: {dfpitr.version})"
-        )
-
-        self.sendMessage('Reading ' + summary)
-
-        if self._is_filtering and dfpitr.cnpj not in self._listed_cnpjs:
-            self.sendMessage('...unlisted CNPJ, skipping')
-            return
-
         doc = models.Document.fromDfpItr(dfpitr)
         
         if len(doc.statements) == 0:
-            self.sendMessage('...no statements')
+            self.emitMessage('...no statements')
         else:
             found_bpa = False
             found_bpp = False
             found_dre = False
             
             for stmt in doc.statements:
-                self.sendMessage(f'...found {stmt.statement_type} ({stmt.balance_type})')
+                self.emitMessage(f'...found {stmt.statement_type} ({stmt.balance_type})')
 
                 if stmt.balance_type != cvm.datatypes.BalanceType.CONSOLIDATED:
                     continue
@@ -89,10 +70,27 @@ class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
 
             if found_bpa and found_bpp:
                 doc.balance_sheet = models.BalanceSheet.from_document(dfpitr)
-                self.sendMessage('...generated Balance Sheet')
+                self.emitMessage('...generated Balance Sheet')
 
             if found_dre:
                 doc.income_statement = models.IncomeStatement.from_document(dfpitr)
-                self.sendMessage('...generated Income Statement')
+                self.emitMessage('...generated Income Statement')
 
         self.merge(doc)
+
+    def _updateListedCnpjs(self, cnpj: int):
+        if not self._is_filtering:
+            return
+        
+        if self._last_cnpj is None:
+            self._last_cnpj = cnpj
+        elif self._last_cnpj == cnpj:
+            return
+        else:
+            self._listed_cnpjs.discard(self._last_cnpj)
+            
+            if len(self._listed_cnpjs) == 0:
+                self.emitMessage('Finished reading all documents with the given CNPJs')
+                raise StopIteration()
+            else:
+                self._last_cnpj = cnpj

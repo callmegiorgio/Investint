@@ -27,6 +27,7 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def showImportingWindow(self, cls: typing.Type[widgets.ImportingWindow]):
         win = cls(self)
+        win.setMinimumSize(600, 300)
         win.importingStarted.connect(functools.partial(self.menuBar().setEnabled, False))
         win.importingStarted.connect(functools.partial(self.centralWidget().setEnabled, False))
         win.importingFinished.connect(self._company_widget.refresh)

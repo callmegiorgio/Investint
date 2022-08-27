@@ -11,5 +11,5 @@ class ImportingFcaWindow(widgets.ImportingWindow):
         
         self.settingsButton().setVisible(False)
     
-    def createWorker(self) -> importing.Worker:
-        return importing.FcaWorker()
+    def createWorker(self, filepath: str) -> importing.Worker:
+        return importing.FcaWorker(filepath)

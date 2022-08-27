@@ -1,6 +1,3 @@
-import sqlalchemy.exc as sa_exc
-import typing
-from PyQt5     import QtCore
 from investint import importing, models
 
 class SqlWorker(importing.Worker):
@@ -13,8 +10,8 @@ class SqlWorker(importing.Worker):
     in the worker thread.
     """
 
-    def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
-        super().__init__(parent=parent)
+    def __init__(self, filepath: str) -> None:
+        super().__init__(filepath=filepath)
 
         self._session = None
 
@@ -39,13 +36,20 @@ class SqlWorker(importing.Worker):
         self.session().merge(mapped_obj)
 
     def commit(self):
-        """Commit changes to the database, or sends
-        a traceback message if operation fails."""
-
-        try:
-            self.session().commit()
-        except sa_exc.SQLAlchemyError:
-            self.sendTracebackMessage()
+        self.session().commit()
 
     def rollback(self):
         self.session().rollback()
+
+    ################################################################################
+    # Overriden methods
+    ################################################################################
+    def finish(self, completed: bool):
+        """Reimplements `Worker.finish()` to commit pending changes on
+        `session()` if `completed` is `True`, or rollback otherwise.
+        """
+
+        if completed:
+            self.commit()
+        else:
+            self.rollback()

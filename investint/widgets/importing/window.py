@@ -1,4 +1,3 @@
-import functools
 import typing
 import pyqt5_fugueicons as fugue
 from PyQt5     import QtCore, QtGui, QtWidgets
@@ -16,14 +15,22 @@ class ImportingWindow(QtWidgets.QWidget):
     subclasses of `working.Worker`.
     """
 
+    ################################################################################
+    # Public signals
+    ################################################################################
     importingStarted  = QtCore.pyqtSignal()
-    importingFinished = QtCore.pyqtSignal()
+    importingFinished = QtCore.pyqtSignal(bool)
+    importingError    = QtCore.pyqtSignal(type, BaseException, str)
 
+    ################################################################################
+    # Initialization
+    ################################################################################
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None):
         super().__init__(parent=parent, flags=QtCore.Qt.WindowType.Window)
 
-        self._worker_thread = QtCore.QThread()
         self._filename_filter = 'Any File (*)'
+        self._is_importing    = False
+        self._thread_pool     = QtCore.QThreadPool()
 
         self._initWidgets()
         self._initLayouts()
@@ -60,6 +67,9 @@ class ImportingWindow(QtWidgets.QWidget):
         
         self.setLayout(main_layout)
 
+    ################################################################################
+    # Public methods
+    ################################################################################
     def settingsButton(self) -> QtWidgets.QToolButton:
         return self._settings_button
 
@@ -81,24 +91,21 @@ class ImportingWindow(QtWidgets.QWidget):
 
         self._output_edit.append(text)
 
-    def createWorker(self) -> importing.Worker:
-        return importing.Worker()
+    def createWorker(self, filepath: str) -> importing.Worker:
+        return importing.Worker(filepath)
 
     def isImporting(self):
-        return self._worker_thread.isRunning()
+        return self._is_importing
 
     def startImporting(self):
         """Starts the importing process.
 
-        If the worker thread is running or `filepath()` is an empty string,
+        If `isImporting()` is `True` or `filepath()` is an empty string,
         does nothing.
         
-        Otherwise, calls `createWorker()` and moves the returned `worker`
-        to the worker thread. Emits `importingStarted` and starts running
-        `worker.read(filepath())` in the worker thread.
-        
-        This method also ensures that when `worker.finished` is emitted,
-        the worker thread is stopped and `importingFinished` is emitted.
+        Otherwise, calls `createWorker(filepath())` and starts running
+        the returned worker object on a worker thread. Then, emits
+        `importingStarted`.
         """
 
         if self.isImporting():
@@ -108,56 +115,34 @@ class ImportingWindow(QtWidgets.QWidget):
 
         if filepath == '':
             return
-
-        def toggleInput(enabled: bool):
-            self._settings_button.setEnabled(enabled)
-            self._import_btn.setText('Import' if enabled else 'Stop')
-            self._filepath_edit.setEnabled(enabled)
         
-        self._worker = self.createWorker()
-        self._worker.moveToThread(self._worker_thread)
-        self._worker.messaged.connect(self.appendOutput)
-        self._worker.finished.connect(self._worker_thread.quit)
-        self._worker_thread.started.connect(functools.partial(self._worker.read, filepath))
-        self._worker_thread.finished.connect(functools.partial(toggleInput, True))
-        self._worker_thread.finished.connect(self._onWorkerThreadFinished)
+        self._worker = self.createWorker(filepath)
+        self._worker.signals().error.connect(self._onWorkerError)
+        self._worker.signals().messaged.connect(self.appendOutput)
+        self._worker.signals().finished.connect(self._onWorkerFinished)
 
         self.clearOutput()
-        toggleInput(False)
+        self._toggleInput(False)
+
+        self._thread_pool.start(self._worker)
+        self._is_importing = True
 
         self.importingStarted.emit()
-        self._worker_thread.start()
 
     def stopImporting(self):
-        if not self.isImporting() or self._worker.isStopRequested():
+        """Stops the importing process.
+        
+        If `isImporting()` is `False`, does nothing.
+
+        Otherwise, stops the worker object created by `startImporting()`
+        and emits the signal `importingFinished`.
+        """
+
+        if not self.isImporting():
             return
 
         self._worker.stop()
-
-    @QtCore.pyqtSlot(str)
-    def _onFilepathTextEdited(self, text: str):
-        self._import_btn.setEnabled(text != '')
-
-    @QtCore.pyqtSlot()
-    def _onBrowseFileAction(self):
-        result   = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', self._filename_filter)
-        filepath = result[0]
-
-        self._filepath_edit.setText(filepath)
-        self._import_btn.setEnabled(filepath != '')
-
-    @QtCore.pyqtSlot()
-    def _onImportButtonClicked(self):
-        if self.isImporting():
-            self.stopImporting()
-        else:
-            self.startImporting()
-
-    @QtCore.pyqtSlot()
-    def _onWorkerThreadFinished(self):
-        self._worker.deleteLater()
-        self._worker_thread.disconnect()
-        self.importingFinished.emit()
+        self._import_btn.setEnabled(False)
 
     ################################################################################
     # Overriden methods
@@ -177,8 +162,66 @@ class ImportingWindow(QtWidgets.QWidget):
 
         if ret == QtWidgets.QMessageBox.StandardButton.Yes:
             self._worker.stop()
-            self._worker_thread.quit()
-            self._worker_thread.wait()
+            self._thread_pool.waitForDone()
             event.accept()
         else:
             event.ignore()
+
+    ################################################################################
+    # Private methods
+    ################################################################################
+    def _toggleInput(self, enabled: bool):
+        self._settings_button.setEnabled(enabled)
+        self._import_btn.setText('Import' if enabled else 'Stop')
+        self._filepath_edit.setEnabled(enabled)
+
+    def _resetState(self):
+        self._worker       = None
+        self._is_importing = False
+        self._toggleInput(True)
+        self._import_btn.setEnabled(True)
+
+    ################################################################################
+    # Private slots
+    ################################################################################
+    @QtCore.pyqtSlot(str)
+    def _onFilepathTextEdited(self, text: str):
+        self._import_btn.setEnabled(text != '')
+
+    @QtCore.pyqtSlot()
+    def _onBrowseFileAction(self):
+        result   = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', self._filename_filter)
+        filepath = result[0]
+
+        self._filepath_edit.setText(filepath)
+        self._import_btn.setEnabled(filepath != '')
+
+    @QtCore.pyqtSlot()
+    def _onImportButtonClicked(self):
+        if self.isImporting():
+            self.stopImporting()
+        else:
+            self.startImporting()
+
+    @QtCore.pyqtSlot(type, BaseException, str)
+    def _onWorkerError(self, exc_type: typing.Type[BaseException], exc_value: BaseException, exc_tb: str):
+        QtWidgets.QMessageBox.critical(
+            self,
+            exc_type.__name__,
+            str(exc_value) + '\n\n' + exc_tb
+        )
+
+        self._resetState()
+        self.importingError.emit(exc_type, exc_value, exc_tb)
+
+    @QtCore.pyqtSlot(bool)
+    def _onWorkerFinished(self, completed: bool):
+        if completed:
+            QtWidgets.QMessageBox.information(
+                self,
+                'Importing Completed',
+                'The importing was completed with success.'
+            )
+
+        self._resetState()
+        self.importingFinished.emit(completed)
