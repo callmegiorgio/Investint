@@ -106,7 +106,9 @@ class Worker(QtCore.QRunnable):
             exc_type, exc_value = sys.exc_info()[:2]
             exc_desc            = traceback.format_exc()
 
-            QtCore.qCritical(exc_desc)
+            QtCore.qCritical(exc_desc.encode('utf-8'))
+
+            self.finish(False)
             self.signals().error.emit(exc_type, exc_value, exc_desc)
 
         else:

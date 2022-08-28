@@ -213,6 +213,7 @@ class ImportingWindow(QtWidgets.QWidget):
 
         self._resetState()
         self.importingError.emit(exc_type, exc_value, exc_tb)
+        self.importingFinished.emit(False)
 
     @QtCore.pyqtSlot(bool)
     def _onWorkerFinished(self, completed: bool):
