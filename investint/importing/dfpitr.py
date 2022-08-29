@@ -49,8 +49,15 @@ class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
         Then, for each ORM-mapped object `o`, calls `merge(o)`.
         """
 
+        company = models.PublicCompany.findByCNPJ(dfpitr.cnpj, self.session())
+
+        if company is None:
+            self.emitMessage('...company not found in the database, skipping')
+            return
+
         doc = models.Document.fromDfpItr(dfpitr)
-        
+        doc.company = company
+
         if len(doc.statements) == 0:
             self.emitMessage('...no statements')
         else:

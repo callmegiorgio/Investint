@@ -16,22 +16,23 @@ def _enumByDescription(enum_type: typing.Type[cvm.datatypes.enums.DescriptiveInt
 class PublicCompany(models.Base):
     __tablename__ = 'public_company'
 
-    cnpj                       = sa.Column(sa.Integer, primary_key=True)
-    corporate_name             = sa.Column(sa.String,  nullable=False)
+    id                         = sa.Column(sa.Integer,     primary_key=True, autoincrement=True)
+    cnpj                       = sa.Column(sa.String(20),  nullable=False)
+    corporate_name             = sa.Column(sa.String(100), nullable=False)
     corporate_name_date        = sa.Column(sa.Date)
-    prev_corporate_name        = sa.Column(sa.String)
-    trade_name                 = sa.Column(sa.String)
-    establishment_date         = sa.Column(sa.Date,    nullable=False)
-    cvm_code                   = sa.Column(sa.Integer, nullable=False, unique=True)
+    prev_corporate_name        = sa.Column(sa.String(100))
+    trade_name                 = sa.Column(sa.String(100))
+    establishment_date         = sa.Column(sa.Date,        nullable=False)
+    cvm_code                   = sa.Column(sa.String(6),   nullable=False, unique=True)
     industry                   = sa.Column(sa.Enum(datatypes.Industry, values_callable=_enumByValue), nullable=False)
-    activity_description       = sa.Column(sa.String)
+    activity_description       = sa.Column(sa.String(200))
     registration_date          = sa.Column(sa.Date, nullable=False)
     registration_status        = sa.Column(sa.Enum(datatypes.RegistrationStatus, values_callable=_enumByDescription), nullable=False)
     registration_status_date   = sa.Column(sa.Date, nullable=False)
     registration_category      = sa.Column(sa.Enum(datatypes.RegistrationCategory, values_callable=_enumByDescription), nullable=False)
     registration_category_date = sa.Column(sa.Date, nullable=False)
     cancelation_date           = sa.Column(sa.Date)
-    cancelation_reason         = sa.Column(sa.String)
+    cancelation_reason         = sa.Column(sa.String(100))
     home_country               = sa.Column(sa.Enum(datatypes.Country), nullable=False)
     securities_custody_country = sa.Column(sa.Enum(datatypes.Country))
     issuer_status              = sa.Column(sa.Enum(datatypes.IssuerStatus, values_callable=_enumByDescription))
@@ -41,13 +42,20 @@ class PublicCompany(models.Base):
     fiscal_year_closing_day    = sa.Column(sa.Integer, nullable=False)
     fiscal_year_closing_month  = sa.Column(sa.Integer, nullable=False)
     fiscal_year_change_date    = sa.Column(sa.Date)
-    webpage                    = sa.Column(sa.String)
+    webpage                    = sa.Column(sa.String(100))
+    is_listed                  = sa.Column(sa.Boolean, nullable=False, default=False)
 
     documents: typing.List['Document'] = sa_orm.relationship('Document', back_populates='company', uselist=True)
 
+    __mapper_args__ = {
+        'polymorphic_identity': False,
+        'polymorphic_on': is_listed
+    }
+
     @staticmethod
-    def findByCNPJ(cnpj: int) -> typing.Optional[PublicCompany]:
-        session = models.get_session()
+    def findByCNPJ(cnpj: str, session = None) -> typing.Optional[PublicCompany]:
+        if session is None:
+            session = models.get_session()
 
         return session.query(PublicCompany).filter(PublicCompany.cnpj == cnpj).one_or_none()
 
@@ -72,7 +80,7 @@ class PublicCompany(models.Base):
         return [row[0] for row in results]
 
     @staticmethod
-    def exists(cnpj: int) -> bool:
+    def exists(cnpj: str) -> bool:
         return PublicCompany.findByCNPJ(cnpj) is not None
 
     @staticmethod
@@ -81,7 +89,7 @@ class PublicCompany(models.Base):
             return None
 
         return PublicCompany(
-            cnpj                       = fca.cnpj,
+            cnpj                       = fca.cnpj.digits(),
             corporate_name             = fca.issuer_company.corporate_name,
             corporate_name_date        = fca.issuer_company.corporate_name_last_changed,
             prev_corporate_name        = fca.issuer_company.previous_corporate_name,
@@ -112,13 +120,13 @@ class PublicCompany(models.Base):
 class Document(models.Base):
     __tablename__ = 'document'
 
-    id             = sa.Column(sa.Integer, primary_key=True, autoincrement=False)
-    cnpj           = sa.Column(sa.Integer, sa.ForeignKey('public_company.cnpj'), nullable=False)
-    type           = sa.Column(sa.Enum(datatypes.DocumentType),                  nullable=False)
-    version        = sa.Column(sa.Integer,                                       nullable=False)
-    reference_date = sa.Column(sa.Date,                                          nullable=False)
-    receipt_date   = sa.Column(sa.Date,                                          nullable=False)
-    url            = sa.Column(sa.String)
+    id             = sa.Column(sa.Integer,                      primary_key=True, autoincrement=False)
+    company_id     = sa.Column(sa.Integer,                      sa.ForeignKey('public_company.id'), nullable=False)
+    type           = sa.Column(sa.Enum(datatypes.DocumentType), nullable=False)
+    version        = sa.Column(sa.SmallInteger,                 nullable=False)
+    reference_date = sa.Column(sa.Date,                         nullable=False)
+    receipt_date   = sa.Column(sa.Date,                         nullable=False)
+    url            = sa.Column(sa.String(121))
 
     company:          PublicCompany                      = sa_orm.relationship('PublicCompany',   back_populates='documents', uselist=False)
     statements:       typing.List['Statement']           = sa_orm.relationship('Statement',       back_populates='document',  uselist=True)
@@ -140,7 +148,6 @@ class Document(models.Base):
 
         return Document(
             id             = dfpitr.id,
-            cnpj           = dfpitr.cnpj,
             type           = dfpitr.type,
             version        = dfpitr.version,
             reference_date = dfpitr.reference_date,
@@ -293,11 +300,12 @@ class BalanceSheet(cvm.balances.BalanceSheet):
 class Account(models.Base):
     __tablename__ = 'account'
 
-    id           = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    statement_id = sa.Column(sa.Integer, sa.ForeignKey('statement.id'))
-    code         = sa.Column(sa.String,  nullable=False)
-    name         = sa.Column(sa.String,  nullable=False)
-    quantity     = sa.Column(sa.Float,   nullable=False)
+    id           = sa.Column(sa.Integer,     primary_key=True, autoincrement=True)
+    statement_id = sa.Column(sa.Integer,     sa.ForeignKey('statement.id'))
+    code         = sa.Column(sa.String(18),  nullable=False)
+    name         = sa.Column(sa.String(100), nullable=False)
+    quantity     = sa.Column(sa.Integer,     nullable=False)
+    is_fixed     = sa.Column(sa.Boolean,     nullable=False)
 
     statement: Statement = sa_orm.relationship('Statement', back_populates='accounts', uselist=False)
 
@@ -306,5 +314,6 @@ class Account(models.Base):
         return Account(
             code     = account.code,
             name     = account.name,
-            quantity = account.quantity
+            quantity = account.quantity,
+            is_fixed = account.is_fixed
         )

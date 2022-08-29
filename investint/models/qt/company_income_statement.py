@@ -26,19 +26,21 @@ class CompanyIncomeStatementModel(models.CompanyStatementModel):
         super().__init__(mapped_row_names, parent)
 
     def selectStatement(self,
-                        cnpj: int,
+                        cnpj: str,
                         start_date: datetime.date,
                         end_date: datetime.date,
                         document_type: cvm.datatypes.DocumentType
     ) -> sa.select:
 
         I = models.IncomeStatement
+        C = models.PublicCompany
         D = models.Document
 
         return (
             sa.select(D.reference_date, I)
-              .join(D)
-              .where(D.cnpj == cnpj)
+              .join(D, I.document_id == D.id)
+              .join(C, D.company_id  == C.id)
+              .where(C.cnpj == cnpj)
               .where(D.reference_date.between(start_date, end_date))
               .where(D.type == document_type)
               .order_by(D.reference_date.asc())

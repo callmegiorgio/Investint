@@ -22,14 +22,19 @@ class CompanyStatementModel(models.MappedBreakdownTableModel):
         self._period = CompanyStatementPeriod.Annual
 
     def selectStatement(self,
-                        cnpj: int,
+                        cnpj: str,
                         start_date: datetime.date,
                         end_date: datetime.date,
                         document_type: cvm.datatypes.DocumentType
     ) -> sa.select:
         raise NotImplementedError('selectStatement')
 
-    def select(self, cnpj: int, start_year: int, end_year: int, period: CompanyStatementPeriod = CompanyStatementPeriod.Annual):
+    def select(self,
+               cnpj: str,
+               start_year: int,
+               end_year: int,
+               period: CompanyStatementPeriod = CompanyStatementPeriod.Annual
+    ):
         self.clear()
 
         session = models.get_session()
