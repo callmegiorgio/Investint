@@ -5,7 +5,7 @@ from investint import importing, models
 class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
     """Implements a `Worker` that imports data from DFP/ITR files."""
 
-    def __init__(self, listed_cnpjs: typing.Iterable[int], filepath: str) -> None:
+    def __init__(self, listed_cnpjs: typing.Iterable[str], filepath: str) -> None:
         super().__init__(filepath=filepath)
 
         self._listed_cnpjs = set(listed_cnpjs)
@@ -32,12 +32,14 @@ class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
 
         self.emitMessage('Reading ' + summary)
 
-        if self._is_filtering and dfpitr.cnpj not in self._listed_cnpjs:
+        cnpj = dfpitr.cnpj.digits()
+
+        if self._is_filtering and cnpj not in self._listed_cnpjs:
             self.emitMessage('...unlisted CNPJ, skipping')
         else:
             self.importDocument(dfpitr)
 
-        self._updateListedCnpjs(dfpitr.cnpj)
+        self._updateListedCnpjs(cnpj)
 
     def importDocument(self, dfpitr: cvm.datatypes.DFPITR):
         """First, creates the following ORM-mapped objects:
@@ -49,7 +51,7 @@ class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
         Then, for each ORM-mapped object `o`, calls `merge(o)`.
         """
 
-        company = models.PublicCompany.findByCNPJ(dfpitr.cnpj, self.session())
+        company = models.PublicCompany.findByCNPJ(dfpitr.cnpj.digits(), self.session())
 
         if company is None:
             self.emitMessage('...company not found in the database, skipping')
@@ -85,7 +87,7 @@ class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
 
         self.merge(doc)
 
-    def _updateListedCnpjs(self, cnpj: int):
+    def _updateListedCnpjs(self, cnpj: str):
         if not self._is_filtering:
             return
         
