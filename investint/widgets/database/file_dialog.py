@@ -11,6 +11,7 @@ class DatabaseFileDialog(widgets.DatabaseConnectionDialog):
         self._initLayouts()
 
     def _initWidgets(self):
+        self.setWindowTitle('Open Database File')
         self.setMinimumSize(600, 400)
 
         self._file_dialog = QtWidgets.QFileDialog()

@@ -38,7 +38,7 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
         file_menu.addAction(
-            fugue.icon('database'),
+            fugue.icon('database-network'),
             'Connect to database...',
             functools.partial(self.showDatabaseConnectionDialog, widgets.DatabaseClientDialog)
         )
