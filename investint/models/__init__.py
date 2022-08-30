@@ -1,4 +1,4 @@
-from investint.models.sql.base import Base, metadata, mapper_registry, set_engine, get_session
+from investint.models.sql.base import Base, metadata, mapper_registry, get_session, Session
 from investint.models.sql.cvm  import PublicCompany, Document, Statement,\
                                       Account, IncomeStatement, BalanceSheet
 from investint.models.sql.b3   import ListedCompany, Instrument, Quote
