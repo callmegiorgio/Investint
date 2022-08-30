@@ -116,13 +116,16 @@ class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
             dialect = url.drivername
             driver  = ''
 
-        self.setDialect(dialect)
-        self.setDriver(driver)
-        self.setUsername(url.username or '')
-        self.setPassword(url.password or '')
-        self.setHost(url.host or '')
-        self.setPort(url.port or 0)
-        self.setDatabase(url.database or '')
+        if dialect == 'sqlite':
+            self.setDefault()
+        else:
+            self.setDialect(dialect)
+            self.setDriver(driver)
+            self.setUsername(url.username or '')
+            self.setPassword(url.password or '')
+            self.setHost(url.host or '')
+            self.setPort(url.port or 0)
+            self.setDatabase(url.database or '')
 
     def dialect(self) -> str:
         return self._dialect_combo.currentData()

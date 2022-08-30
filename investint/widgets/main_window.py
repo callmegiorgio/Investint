@@ -2,6 +2,7 @@ import functools
 import pyqt5_fugueicons as fugue
 import sqlalchemy       as sa
 import sqlalchemy.exc   as sa_exc
+import sqlalchemy.pool  as sa_pool
 import typing
 from PyQt5     import QtWidgets
 from investint import models, widgets
@@ -11,6 +12,14 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
 
         self._initWidgets()
+        self.setEngine(
+            sa.create_engine(
+                'sqlite://',
+                echo=True,
+                future=True,
+                connect_args={'check_same_thread': False}, 
+                poolclass=sa_pool.StaticPool
+            ))
 
     def _initWidgets(self):
         self.setWindowTitle('Investint')
@@ -84,6 +93,6 @@ class MainWindow(QtWidgets.QMainWindow):
         url = engine.url
 
         if engine.dialect.name == 'sqlite':
-            self.setWindowTitle(f'Investint - {url.database}')
+            self.setWindowTitle(f"Investint - {url.database or 'In-Memory'}")
         else:
             self.setWindowTitle(f"Investint - '{url.username}'@'{url.host}:{url.port}'/'{url.database}' ({url.drivername})")
