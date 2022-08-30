@@ -21,7 +21,6 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
 
         self._stmt_type_lbl   = QtWidgets.QLabel('Statement Type')
         self._stmt_type_combo = QtWidgets.QComboBox()
-        self._stmt_type_combo.addItem('All', None)
 
         for t in cvm.datatypes.StatementType:
             self._stmt_type_combo.addItem(t.description, t)
@@ -64,7 +63,7 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
     def documentType(self) -> cvm.datatypes.DocumentType:
         return self._doc_type_combo.currentData()
 
-    def statementType(self) -> typing.Optional[cvm.datatypes.StatementType]:
+    def statementType(self) -> cvm.datatypes.StatementType:
         return self._stmt_type_combo.currentData()
 
     def balanceType(self) -> cvm.datatypes.BalanceType:
@@ -85,31 +84,10 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         if self._company is None:
             return
 
-        required_doc_type       = self.documentType()
-        required_stmt_type      = self.statementType()
-        required_balance_type   = self.balanceType()
-        required_reference_year = self.referenceYear()
-
-        accounts = []
-
-        #TODO: filtering at application level is expensive, since
-        #      ALL financial statements will be returned from the
-        #      database. Please move this logic to database level
-        #      for performance's sake.
-        for doc in self._company.documents:
-            if doc.type != required_doc_type:
-                continue
-
-            if doc.reference_date.year != required_reference_year:
-                continue
-
-            for stmt in doc.statements:
-                if required_stmt_type is not None and stmt.statement_type != required_stmt_type:
-                    continue
-            
-                if stmt.balance_type != required_balance_type:
-                    continue
-
-                accounts += stmt.accounts
-
-        self._account_tree.model().selectAccounts(accounts)
+        self._account_tree.model().select(
+            self._company.cnpj,
+            self.referenceYear(),
+            self.documentType(),
+            self.statementType(),
+            self.balanceType()
+        )

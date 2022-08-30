@@ -1,8 +1,11 @@
 from __future__ import annotations
 import collections
+import cvm
+import datetime
 import decimal
 import enum
-import sqlalchemy as sa
+import sqlalchemy     as sa
+import sqlalchemy.orm as sa_orm
 import typing
 from PyQt5        import QtCore
 from PyQt5.QtCore import Qt
@@ -112,39 +115,40 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
         self._root_item = AccountTreeItem('', '', decimal.Decimal(0))
         self.endResetModel()
 
-    def selectStatement(self, cnpj: int, statement_type: datatypes.StatementType, balance_type: datatypes.BalanceType):
-        A: models.Account   = sa.orm.aliased(models.Account,   'a')
-        S: models.Statement = sa.orm.aliased(models.Statement, 's')
+    def select(self,
+               cnpj: str,
+               reference_year: int,
+               document_type: cvm.datatypes.DocumentType,
+               statement_type: cvm.datatypes.StatementType,
+               balance_type: cvm.datatypes.BalanceType
+    ) -> None:
+        A: models.Account       = sa_orm.aliased(models.Account,       name='a')
+        S: models.Statement     = sa_orm.aliased(models.Statement,     name='s')
+        D: models.Document      = sa_orm.aliased(models.Document,      name='d')
+        C: models.PublicCompany = sa_orm.aliased(models.PublicCompany, name='c')
 
         stmt = (
             sa.select(A)
-              .join(S, A.statement_id == S.statement_id)
-              .where(S.cnpj           == cnpj)
+              .select_from(A)
+              .join(S, A.statement_id == S.id)
+              .join(D, S.document_id  == D.id)
+              .join(C, D.company_id   == C.id)
+              .where(C.cnpj == cnpj)
+              .where(D.reference_date.between(
+                  datetime.date(reference_year, 1,  1),
+                  datetime.date(reference_year, 12, 31)
+              ))
+              .where(D.type           == document_type)
               .where(S.statement_type == statement_type)
               .where(S.balance_type   == balance_type)
         )
-        
-        session = models.get_session()
-        results = session.execute(stmt).all()
-
-        self.selectAccounts(result[0] for result in results)
-
-    def selectDocument(self, document_id: int):
-        A: models.Account   = sa.orm.aliased(models.Account,   'a')
-        S: models.Statement = sa.orm.aliased(models.Statement, 's')
-
-        stmt = (
-            sa.select(A)
-              .join(S, A.statement_id == S.statement_id)
-              .where(S.document_id == document_id)
-        )
 
         session = models.get_session()
         results = session.execute(stmt).all()
 
         self.selectAccounts(result[0] for result in results)
 
-    def selectAccounts(self, accounts: typing.Iterable[models.Account]):
+    def selectAccounts(self, accounts: typing.Iterable[models.Account]) -> None:
         parent_items = {}
         unparented_children = collections.defaultdict(list)
 
