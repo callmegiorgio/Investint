@@ -137,14 +137,9 @@ class Document(models.Base):
     def fromDfpItr(dfpitr: cvm.datatypes.DFPITR) -> Document:
         statements = []
 
-        for balance_type in cvm.datatypes.BalanceType:
-            mapping = dfpitr[balance_type]
-
-            for collection in mapping.values():
-                statements += Statement.fromCollection(
-                    balance_type = balance_type,
-                    collection   = collection
-                )
+        for grouped_collection in dfpitr.grouped_collections():
+            for collection in grouped_collection.collections():
+                statements += Statement.fromCollection(collection)
 
         return Document(
             id             = dfpitr.id,
@@ -159,24 +154,22 @@ class Document(models.Base):
 class Statement(models.Base):
     __tablename__ = 'statement'
 
-    id                = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    document_id       = sa.Column(sa.Integer, sa.ForeignKey('document.id'), nullable=False)
-    statement_type    = sa.Column(sa.Enum(datatypes.StatementType),         nullable=False)
-    balance_type      = sa.Column(sa.Enum(datatypes.BalanceType),           nullable=False)
-    fiscal_year_start = sa.Column(sa.Date)
-    fiscal_year_end   = sa.Column(sa.Date,                                  nullable=False)
+    id                = sa.Column(sa.Integer,                       primary_key=True, autoincrement=True)
+    document_id       = sa.Column(sa.Integer,                       sa.ForeignKey('document.id'), nullable=False)
+    statement_type    = sa.Column(sa.Enum(datatypes.StatementType), nullable=False)
+    balance_type      = sa.Column(sa.Enum(datatypes.BalanceType),   nullable=False)
+    period_start_date = sa.Column(sa.Date)
+    period_end_date   = sa.Column(sa.Date,                          nullable=False)
 
     document: Document             = sa_orm.relationship('Document', back_populates='statements', uselist=False)
     accounts: typing.List[Account] = sa_orm.relationship('Account',  back_populates='statement',  uselist=True)
 
     @staticmethod
-    def fromCollection(balance_type: cvm.datatypes.BalanceType,
-                       collection: cvm.datatypes.StatementCollection
-    ) -> typing.List[Statement]:
+    def fromCollection(collection: cvm.datatypes.StatementCollection) -> typing.List[Statement]:
 
         def makeStatement(accounts: cvm.datatypes.AccountTuple):
             stmt = Statement(
-                balance_type = balance_type,
+                balance_type = collection.balance_type,
                 accounts     = [Account.fromCVM(cvm_acc) for cvm_acc in accounts.normalized()]
             )
 
@@ -191,26 +184,26 @@ class Statement(models.Base):
 
         stmt = makeStatement(bpa.accounts)
         stmt.statement_type    = cvm.datatypes.StatementType.BPA
-        stmt.fiscal_year_start = None
-        stmt.fiscal_year_end   = bpa.fiscal_year_end
+        stmt.period_start_date = None
+        stmt.period_end_date   = bpa.period_end_date
         stmts.append(stmt)
 
         stmt = makeStatement(bpp.accounts)
         stmt.statement_type    = cvm.datatypes.StatementType.BPP
-        stmt.fiscal_year_start = None
-        stmt.fiscal_year_end   = bpp.fiscal_year_end
+        stmt.period_start_date = None
+        stmt.period_end_date   = bpp.period_end_date
         stmts.append(stmt)
 
         stmt = makeStatement(dre.accounts)
         stmt.statement_type    = cvm.datatypes.StatementType.DRE
-        stmt.fiscal_year_start = dre.fiscal_year_start
-        stmt.fiscal_year_end   = dre.fiscal_year_end
+        stmt.period_start_date = dre.period_start_date
+        stmt.period_end_date   = dre.period_end_date
         stmts.append(stmt)
 
         stmt = makeStatement(dra.accounts)
         stmt.statement_type    = cvm.datatypes.StatementType.DRA
-        stmt.fiscal_year_start = dra.fiscal_year_start
-        stmt.fiscal_year_end   = dra.fiscal_year_end
+        stmt.period_start_date = dra.period_start_date
+        stmt.period_end_date   = dra.period_end_date
         stmts.append(stmt)
 
         # TODO: other statement types
@@ -314,6 +307,6 @@ class Account(models.Base):
         return Account(
             code     = account.code,
             name     = account.name,
-            quantity = account.quantity,
+            quantity = int(account.quantity),
             is_fixed = account.is_fixed
         )

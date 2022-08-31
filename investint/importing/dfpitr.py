@@ -78,11 +78,11 @@ class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
                 elif stmt.statement_type == cvm.datatypes.StatementType.DRE: found_dre = True
 
             if found_bpa and found_bpp:
-                doc.balance_sheet = models.BalanceSheet.from_document(dfpitr)
+                doc.balance_sheet = models.BalanceSheet.from_dfpitr(dfpitr)
                 self.emitMessage('...generated Balance Sheet')
 
             if found_dre:
-                doc.income_statement = models.IncomeStatement.from_document(dfpitr)
+                doc.income_statement = models.IncomeStatement.from_dfpitr(dfpitr)
                 self.emitMessage('...generated Income Statement')
 
         self.merge(doc)
