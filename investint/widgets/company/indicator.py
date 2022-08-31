@@ -57,4 +57,6 @@ class CompanyIndicatorWidget(QtWidgets.QWidget):
             profitability = icvm.Profitability.from_statement(balance_sheet, income_statement)
             self._profitability_model.appendProfitability(reference_year, profitability)
 
-            
+        self._efficiency_table.resizeRowsToContents()
+        self._indebtedness_table.resizeRowsToContents()
+        self._profitability_table.resizeRowsToContents()
