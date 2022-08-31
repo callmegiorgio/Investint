@@ -1,5 +1,6 @@
 from __future__ import annotations
 import dataclasses
+import datetime
 import typing
 import cvm
 import sqlalchemy     as sa
@@ -151,6 +152,30 @@ class Document(models.Base):
             statements     = statements
         )
 
+    @staticmethod
+    def referenceDates(company_id: int,
+                       document_type: cvm.datatypes.DocumentType,
+                       statement_type: cvm.datatypes.StatementType,
+                       balance_type: cvm.datatypes.BalanceType
+    ) -> typing.List[datetime.date]:
+        S: Statement = sa_orm.aliased(Statement, name='s')
+        D: Document  = sa_orm.aliased(Document,  name='d')
+
+        select_stmt = (
+            sa.select(D.reference_date)
+              .select_from(D)
+              .join(S, D.id == S.document_id)
+              .where(D.company_id == company_id)
+              .where(D.type           == document_type)
+              .where(S.statement_type == statement_type)
+              .where(S.balance_type   == balance_type)
+        )
+
+        session = models.get_session()
+        result  = session.execute(select_stmt.distinct()).all()
+
+        return list(row[0] for row in result)
+
 class Statement(models.Base):
     __tablename__ = 'statement'
 
@@ -209,18 +234,6 @@ class Statement(models.Base):
         # TODO: other statement types
 
         return stmts
-
-    @staticmethod
-    def findByDocument(document_type: datatypes.DocumentType,
-                       document_id: int,
-                       balance_type: datatypes.BalanceType
-    ) -> typing.Optional[Statement]:
-        with models.get_session() as session:
-            return (
-                session.query(Statement)
-                       .filter(document_type=document_type, document_id=document_id, balance_type=balance_type)
-                       .one_or_none()
-            )
 
 @models.mapper_registry.mapped
 @dataclasses.dataclass
