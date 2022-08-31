@@ -1,4 +1,4 @@
-import dataclasses
+import cvm
 import icvm
 import typing
 from PyQt5     import QtCore
@@ -18,5 +18,5 @@ class CompanyProfitabilityModel(models.CompanyIndicatorModel):
         for row in range(self.rowCount() - 1):
             self.setPercentRow(row, True)
     
-    def appendProfitability(self, year: int, profitability: icvm.Profitability):
-        self.append(year, dataclasses.asdict(profitability))
+    def createIndicator(self, balance_sheet: cvm.balances.BalanceSheet, income_statement: cvm.balances.IncomeStatement) -> typing.Any:
+        return icvm.Profitability.from_statement(balance_sheet, income_statement)

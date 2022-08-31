@@ -1,7 +1,6 @@
-import icvm
 import typing
-from PyQt5     import QtWidgets
-from investint import models
+from PyQt5     import QtCore, QtWidgets
+from investint import models, widgets
 
 class CompanyIndicatorWidget(QtWidgets.QWidget):
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
@@ -10,7 +9,13 @@ class CompanyIndicatorWidget(QtWidgets.QWidget):
         self._initWidgets()
         self._initLayouts()
 
+        self._company = None
+
     def _initWidgets(self):
+        self._period_lbl      = QtWidgets.QLabel('Period')
+        self._period_selector = widgets.CompanyStatementPeriodSelector()
+        self._period_selector.periodChanged.connect(self.applyFilter)
+
         self._indebtedness_model = models.CompanyIndebtednessModel()
         self._indebtedness_table = QtWidgets.QTableView()
         self._indebtedness_table.setModel(self._indebtedness_model)
@@ -24,7 +29,12 @@ class CompanyIndicatorWidget(QtWidgets.QWidget):
         self._profitability_table.setModel(self._profitability_model)
     
     def _initLayouts(self):
+        filter_layout = QtWidgets.QGridLayout()
+        filter_layout.addWidget(self._period_lbl,      0, 0)
+        filter_layout.addWidget(self._period_selector, 1, 0)
+
         main_layout = QtWidgets.QVBoxLayout()
+        main_layout.addLayout(filter_layout)
         main_layout.addWidget(self._indebtedness_table)
         main_layout.addWidget(self._efficiency_table)
         main_layout.addWidget(self._profitability_table)
@@ -32,30 +42,19 @@ class CompanyIndicatorWidget(QtWidgets.QWidget):
         self.setLayout(main_layout)
 
     def setCompany(self, co: models.PublicCompany):
-        self._indebtedness_model.clear()
-        self._efficiency_model.clear()
-        self._profitability_model.clear()
+        self._company = co
+        self.applyFilter()
 
-        for doc in co.documents:
-            income_statement = doc.income_statement
-            
-            if income_statement is None:
-                continue
+    def applyFilter(self):
+        if self._company is None:
+            return
 
-            reference_year = doc.reference_date.year
-            efficiency     = icvm.Efficiency.from_statement(income_statement)
-            self._efficiency_model.appendEfficiency(reference_year, efficiency)
+        company_id = self._company.id
+        period     = self._period_selector.period()
 
-            balance_sheet = doc.balance_sheet
-
-            if balance_sheet is None:
-                continue
-            
-            indebtedness = icvm.Indebtedness.from_statement(balance_sheet, income_statement)
-            self._indebtedness_model.appendIndebtedness(reference_year, indebtedness)
-
-            profitability = icvm.Profitability.from_statement(balance_sheet, income_statement)
-            self._profitability_model.appendProfitability(reference_year, profitability)
+        self._indebtedness_model.select(company_id, period)
+        self._efficiency_model.select(company_id, period)
+        self._profitability_model.select(company_id, period)
 
         self._efficiency_table.resizeRowsToContents()
         self._indebtedness_table.resizeRowsToContents()

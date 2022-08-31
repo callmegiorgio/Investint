@@ -1,4 +1,4 @@
-import dataclasses
+import cvm
 import icvm
 import typing
 from PyQt5     import QtCore
@@ -18,5 +18,5 @@ class CompanyIndebtednessModel(models.CompanyIndicatorModel):
 
         super().__init__(mapped_row_names, parent)
 
-    def appendIndebtedness(self, year: int, indebtedness: icvm.Indebtedness):
-        self.append(year, dataclasses.asdict(indebtedness))
+    def createIndicator(self, balance_sheet: cvm.balances.BalanceSheet, income_statement: cvm.balances.IncomeStatement) -> typing.Any:
+        return icvm.Indebtedness.from_statement(balance_sheet, income_statement)
