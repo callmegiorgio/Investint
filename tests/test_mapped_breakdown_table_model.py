@@ -8,7 +8,7 @@ class A:
     b: bool
     f: float
 
-class TestBreakdownTableModel(unittest.TestCase):
+class TestMappedBreakdownTableModel(unittest.TestCase):
     def testRowName(self):
         model = MappedBreakdownTableModel({
             'i': 'Int',
