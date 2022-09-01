@@ -223,6 +223,55 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
 
         self.endResetModel()
 
+    def headerText(self, column: int) -> str:
+        Column = AccountTreeModel.Column
+
+        if column < len(Column):
+            return Column(column).name
+        else:
+            return str(self._period_dates[column - len(Column)])
+
+    def headerTextAlignment(self, column: int) -> Qt.Alignment:
+        Column = AccountTreeModel.Column
+
+        if column < len(Column):
+            return Qt.AlignmentFlag.AlignLeft
+        else:
+            return Qt.AlignmentFlag.AlignCenter
+
+    def text(self, index: QtCore.QModelIndex) -> str:
+        item: typing.Optional[AccountTreeItem] = index.internalPointer()
+
+        if item is None:
+            return ''
+
+        Column = AccountTreeModel.Column
+        column = index.column()
+
+        if column < len(Column):
+            column = Column(index.column())
+
+            if   column == Column.Code: return item.code()
+            elif column == Column.Name: return item.name()
+        else:
+            try:
+                quantity = item.quantities()[column - len(Column)]
+            except IndexError:
+                pass
+            else:
+                return QtCore.QLocale().toCurrencyString(quantity)
+
+        return ''
+
+    def textAlignment(self, index: QtCore.QModelIndex) -> Qt.Alignment:
+        Column = AccountTreeModel.Column
+        column = index.column()
+
+        if column < len(Column):
+            return Qt.AlignmentFlag.AlignLeft
+        else:
+            return Qt.AlignmentFlag.AlignRight
+
     ################################################################################
     # Overriden methods
     ################################################################################
@@ -253,37 +302,22 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
 
     def data(self, index: QtCore.QModelIndex, role: int = Qt.ItemDataRole.DisplayRole) -> typing.Any:
         if role == Qt.ItemDataRole.DisplayRole:
-            item: typing.Optional[AccountTreeItem] = index.internalPointer()
-
-            if item is None:
-                return None
-
-            Column = AccountTreeModel.Column
-            column = index.column()
-
-            if column < len(Column):
-                column = Column(index.column())
-
-                if   column == Column.Code:     return item.code()
-                elif column == Column.Name:     return item.name()
-            else:
-                try:
-                    quantity = item.quantities()[column - len(Column)]
-                except IndexError:
-                    pass
-                else:
-                    return QtCore.QLocale().toCurrencyString(quantity)
-
-        return None
+            return self.text(index)
+        elif role == Qt.ItemDataRole.TextAlignmentRole:
+            return self.textAlignment(index)
+        else:
+            return None
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.ItemDataRole.DisplayRole) -> typing.Any:
-        if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
-            if section < len(AccountTreeModel.Column):
-                return AccountTreeModel.Column(section).name
-            else:
-                return str(self._period_dates[section - len(AccountTreeModel.Column)])
-        
-        return None
+        if orientation != Qt.Orientation.Horizontal:
+            return None
+
+        if role == Qt.ItemDataRole.DisplayRole:
+            return self.headerText(section)
+        elif role == Qt.ItemDataRole.TextAlignmentRole:
+            return self.headerTextAlignment(section)
+        else:
+            return None
 
     def rowCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> int:
         if not parent.isValid():
