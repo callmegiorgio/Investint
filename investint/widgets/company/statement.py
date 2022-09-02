@@ -33,6 +33,7 @@ class CompanyStatementWidget(QtWidgets.QWidget):
 
         self._table_view = QtWidgets.QTableView()
         self._table_view.setModel(models.ReversibleProxyModel())
+        self._table_view.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
 
         # Toggle horizontal analysis.
         self._toggle_ha_button = QtWidgets.QPushButton()

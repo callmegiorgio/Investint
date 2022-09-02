@@ -33,6 +33,15 @@ class CompanyIndicatorWidget(QtWidgets.QWidget):
         self._profitability_model = models.CompanyProfitabilityModel()
         self._profitability_table = QtWidgets.QTableView()
         self._profitability_table.setModel(self._profitability_model)
+
+        tables = (
+            self._indebtedness_table,
+            self._efficiency_table,
+            self._profitability_table
+        )
+
+        for table in tables:
+            table.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
     
     def _initLayouts(self):
         filter_layout = QtWidgets.QGridLayout()
@@ -67,10 +76,6 @@ class CompanyIndicatorWidget(QtWidgets.QWidget):
         self._indebtedness_model.select(company_id, period)
         self._efficiency_model.select(company_id, period)
         self._profitability_model.select(company_id, period)
-
-        self._efficiency_table.resizeRowsToContents()
-        self._indebtedness_table.resizeRowsToContents()
-        self._profitability_table.resizeRowsToContents()
 
     def retranslateUi(self):
         self._period_lbl.setText(self.tr('Period'))
