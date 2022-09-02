@@ -1,7 +1,6 @@
 import functools
 import pyqt5_fugueicons as fugue
 import sqlalchemy       as sa
-import sqlalchemy.exc   as sa_exc
 import typing
 from PyQt5     import QtCore, QtWidgets
 from investint import models, widgets
@@ -24,8 +23,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self._company_widget)
 
     def _initActions(self):
+        self._initFileMenuActions()
+        self._initHelpMenuActions()
+
+    def _initFileMenuActions(self):
         self._open_db_file_action = QtWidgets.QAction()
         self._open_db_file_action.setIcon(fugue.icon('database'))
+        self._open_db_file_action.setShortcut('Ctrl+O')
         self._open_db_file_action.triggered.connect(
             functools.partial(self.showDatabaseConnectionDialog, widgets.DatabaseFileDialog)
         )
@@ -48,7 +52,25 @@ class MainWindow(QtWidgets.QMainWindow):
             functools.partial(self.showImportingWindow, widgets.ImportingDfpItrWindow)
         )
 
+        self._exit_action = QtWidgets.QAction()
+        self._exit_action.setIcon(fugue.icon('door-open-out'))
+        self._exit_action.setShortcut('Ctrl+Q')
+        self._exit_action.triggered.connect(QtCore.QCoreApplication.quit)
+    
+    def _initHelpMenuActions(self):
+        self._about_action = QtWidgets.QAction()
+        self._about_action.setIcon(fugue.icon('information'))
+        self._about_action.triggered.connect(self.showAbout)
+
     def _initMenus(self):
+        self._initFileMenu()
+        self._initHelpMenu()
+
+        menu_bar = self.menuBar()
+        menu_bar.addMenu(self._file_menu)
+        menu_bar.addMenu(self._help_menu)
+    
+    def _initFileMenu(self):
         self._import_menu = QtWidgets.QMenu()
         self._import_menu.setIcon(fugue.icon('database-import'))
         self._import_menu.addAction(self._import_fca_action)
@@ -57,11 +79,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self._file_menu = QtWidgets.QMenu()
         self._file_menu.addAction(self._open_db_file_action)
         self._file_menu.addAction(self._connect_db_action)
+        self._file_menu.addSeparator()
         self._file_menu.addMenu(self._import_menu)
+        self._file_menu.addSeparator()
+        self._file_menu.addAction(self._exit_action)
 
-        menu_bar = self.menuBar()
-        menu_bar.addMenu(self._file_menu)
-    
+    def _initHelpMenu(self):
+        self._help_menu = QtWidgets.QMenu()
+        self._help_menu.addAction(self._about_action)
+
     def showImportingWindow(self, cls: typing.Type[widgets.ImportingWindow]):
         win = cls(self)
         win.setMinimumSize(600, 300)
@@ -82,6 +108,17 @@ class MainWindow(QtWidgets.QMainWindow):
         dialog.engineCreated.connect(self.setEngine)
         dialog.exec()
 
+    def showAbout(self):
+        about = (
+            'version: {}'
+        )
+
+        QtWidgets.QMessageBox.information(
+            self,
+            'Investint',
+            about.format('0.1.0')
+        )
+
     def setEngine(self, engine: sa.engine.Engine):
         models.metadata.create_all(engine)
         models.Session.remove()
@@ -98,17 +135,31 @@ class MainWindow(QtWidgets.QMainWindow):
     def retranslateUi(self):
         self.retranslateWindowTitle()
 
+        #===========================================================
+        # Menu: File
+        #===========================================================
+        self._file_menu.setTitle(self.tr('&File'))
+
         self._open_db_file_action.setText(self.tr('&Open...'))
         self._open_db_file_action.setStatusTip(self.tr('Open a database from a file'))
 
         self._connect_db_action.setText(self.tr('&Connect...'))
         self._connect_db_action.setStatusTip(self.tr('Connect to a database over network'))
 
+        self._exit_action.setText(self.tr('&Exit'))
+
+        #===========================================================
+        # Menu: File / Import
+        #===========================================================
+        self._import_menu.setTitle(self.tr('&Import'))
         self._import_fca_action.setText(self.tr('Companies from FCA...'))
         self._import_dfpitr_action.setText(self.tr('Statements from DFP/ITR...'))
 
-        self._file_menu.setTitle(self.tr('&File'))
-        self._import_menu.setTitle(self.tr('&Import'))
+        #===========================================================
+        # Menu: Help
+        #===========================================================
+        self._help_menu.setTitle(self.tr('Help'))
+        self._about_action.setText(self.tr('About'))
 
     def retranslateWindowTitle(self):
         engine = self.engine()
