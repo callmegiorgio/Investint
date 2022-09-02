@@ -347,7 +347,7 @@
     <message>
         <location filename="../../investint/models/qt/company_indebtedness.py" line="32"/>
         <source>Equity/Assets</source>
-        <translation>Div. Líq./Ativo</translation>
+        <translation>PL/Ativo</translation>
     </message>
     <message>
         <location filename="../../investint/models/qt/company_indebtedness.py" line="33"/>
