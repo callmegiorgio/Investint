@@ -34,14 +34,14 @@ class DatabaseConnectionDialog(QtWidgets.QDialog):
         try:
             url = self.url()
 
+            engine = sa.create_engine(url, echo=True, future=True)
+            engine.connect().close()
+
             if not sa_utils.database_exists(url):
                 if self.askForDatabaseCreation(url.database):
                     sa_utils.create_database(url)
                 else:
                     return
-
-            engine = sa.create_engine(url, echo=True, future=True)
-            engine.connect().close()
 
         except Exception as exc:
             traceback.print_exc()
