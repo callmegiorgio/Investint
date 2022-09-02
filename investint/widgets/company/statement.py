@@ -1,25 +1,30 @@
 import typing
-from PyQt5 import QtCore, QtWidgets
+from PyQt5     import QtCore, QtWidgets
 from investint import models, widgets
 
 class CompanyStatementWidget(QtWidgets.QWidget):
+
+    ################################################################################
+    # Initialization
+    ################################################################################
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent=parent)
 
+        self._company = None
+
         self._initWidgets()
         self._initLayouts()
-
-        self._company = None
+        self.retranslateUi()
 
     def _initWidgets(self):
         self._year_range = widgets.YearRangeWidget()
         self._year_range.setMinimum(2010)
         self._year_range.setEndYear(self._year_range.maximum())
-        self._year_range.valueChanged.connect(self._onYearRangeValueChanged)
+        self._year_range.valueChanged.connect(self.applyFilter)
 
         self._period_selector = widgets.CompanyStatementPeriodSelector()
         self._period_selector.setPeriod(models.CompanyStatementPeriod.Annual)
-        self._period_selector.periodChanged.connect(self._onStatementPeriodChanged)
+        self._period_selector.periodChanged.connect(self.applyFilter)
 
         button_sz_policy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Policy.Maximum,
@@ -30,14 +35,14 @@ class CompanyStatementWidget(QtWidgets.QWidget):
         self._table_view.setModel(models.ReversibleProxyModel())
 
         # Toggle horizontal analysis.
-        self._toggle_ha_button = QtWidgets.QPushButton('Toggle HA')
+        self._toggle_ha_button = QtWidgets.QPushButton()
         self._toggle_ha_button.setSizePolicy(button_sz_policy)
         self._toggle_ha_button.setCheckable(True)
         self._toggle_ha_button.setChecked(False)
         self._toggle_ha_button.clicked.connect(self._onToggleHaButtonClicked)
 
         # Toggle horizontal reversal.
-        self._toggle_hr_button = QtWidgets.QPushButton('Toggle HR')
+        self._toggle_hr_button = QtWidgets.QPushButton()
         self._toggle_hr_button.setSizePolicy(button_sz_policy)
         self._toggle_hr_button.setCheckable(True)
         self._toggle_hr_button.setChecked(self.proxyModel().isReversedHorizontally())
@@ -57,6 +62,9 @@ class CompanyStatementWidget(QtWidgets.QWidget):
 
         self.setLayout(main_layout)
 
+    ################################################################################
+    # Public methods
+    ################################################################################
     def setCompany(self, co: models.PublicCompany):
         self._company = co
         self.applyFilter()
@@ -83,14 +91,22 @@ class CompanyStatementWidget(QtWidgets.QWidget):
             self._period_selector.period()
         )
 
-    @QtCore.pyqtSlot(int, int)
-    def _onYearRangeValueChanged(self, start_year: int, end_year: int):
-        self.applyFilter()
+    def retranslateUi(self):
+        self._toggle_ha_button.setText(self.tr('Toggle HA'))
+        self._toggle_hr_button.setText(self.tr('Toggle HR'))
 
-    @QtCore.pyqtSlot(models.CompanyStatementPeriod)
-    def _onStatementPeriodChanged(self, period: models.CompanyStatementPeriod):
-        self.applyFilter()
-    
+    ################################################################################
+    # Overriden methods
+    ################################################################################
+    def changeEvent(self, event: QtCore.QEvent) -> None:
+        if event.type() == QtCore.QEvent.Type.LanguageChange:
+            self.retranslateUi()
+        
+        super().changeEvent(event)
+
+    ################################################################################
+    # Private slots
+    ################################################################################
     @QtCore.pyqtSlot(bool)
     def _onToggleHaButtonClicked(self, checked: bool):
         self.model().setHorizontalAnalysisEnabled(checked)

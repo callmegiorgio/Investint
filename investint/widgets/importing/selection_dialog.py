@@ -3,6 +3,10 @@ from PyQt5     import QtCore, QtWidgets
 from investint import models, widgets
 
 class ImportingSelectionDialog(QtWidgets.QDialog):
+
+    ################################################################################
+    # Initialization
+    ################################################################################
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent=parent)
 
@@ -15,13 +19,13 @@ class ImportingSelectionDialog(QtWidgets.QDialog):
         self._company_drop_down = widgets.CompanyDropDown()
         self._company_list = QtWidgets.QListWidget()
         
-        self._add_button = QtWidgets.QPushButton('Add')
+        self._add_button = QtWidgets.QPushButton()
         self._add_button.clicked.connect(self._onAddButtonClicked)
 
-        self._remove_button = QtWidgets.QPushButton('Remove')
+        self._remove_button = QtWidgets.QPushButton()
         self._remove_button.clicked.connect(self._onRemoveButtonClicked)
 
-        self._confirm_button = QtWidgets.QPushButton('Confirm')
+        self._confirm_button = QtWidgets.QPushButton()
         self._confirm_button.clicked.connect(self.accept)
 
     def _initLayouts(self):
@@ -51,6 +55,9 @@ class ImportingSelectionDialog(QtWidgets.QDialog):
 
         self.setLayout(main_layout)
 
+    ################################################################################
+    # Public methods
+    ################################################################################
     def addCompany(self, company: models.PublicCompany):
         if company in self._companies:
             return
@@ -70,6 +77,23 @@ class ImportingSelectionDialog(QtWidgets.QDialog):
     def companies(self) -> typing.List[models.PublicCompany]:
         return self._companies.copy()
 
+    def retranslateUi(self):
+        self._add_button.setText(self.tr('Add'))
+        self._remove_button.setText(self.tr('Remove'))
+        self._confirm_button.setText(self.tr('Confirm'))
+
+    ################################################################################
+    # Overriden methods
+    ################################################################################
+    def changeEvent(self, event: QtCore.QEvent) -> None:
+        if event.type() == QtCore.QEvent.Type.LanguageChange:
+            self.retranslateUi()
+        
+        super().changeEvent(event)
+
+    ################################################################################
+    # Private slots
+    ################################################################################
     @QtCore.pyqtSlot()
     def _onAddButtonClicked(self):
         co = self._company_drop_down.currentCompany()

@@ -28,16 +28,15 @@ class ImportingWindow(QtWidgets.QWidget):
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None):
         super().__init__(parent=parent, flags=QtCore.Qt.WindowType.Window)
 
-        self._filename_filter = 'Any File (*)'
-        self._is_importing    = False
-        self._thread_pool     = QtCore.QThreadPool()
+        self._is_importing = False
+        self._thread_pool  = QtCore.QThreadPool()
 
         self._initWidgets()
         self._initLayouts()
+        self.retranslateUi()
 
     def _initWidgets(self):
         self._filepath_edit = QtWidgets.QLineEdit()
-        self._filepath_edit.setPlaceholderText('Path to file...')
         self._filepath_edit.textEdited.connect(self._onFilepathTextEdited)
 
         browse_icon   = fugue.icon('folder-open-document')
@@ -47,7 +46,7 @@ class ImportingWindow(QtWidgets.QWidget):
         self._settings_button = QtWidgets.QToolButton()
         self._settings_button.setIcon(fugue.icon('gear'))
 
-        self._import_btn = QtWidgets.QPushButton('Import')
+        self._import_btn = QtWidgets.QPushButton()
         self._import_btn.setEnabled(False)
         self._import_btn.clicked.connect(self._onImportButtonClicked)
 
@@ -144,9 +143,23 @@ class ImportingWindow(QtWidgets.QWidget):
         self._worker.stop()
         self._import_btn.setEnabled(False)
 
+    def retranslateUi(self):
+        self._filename_filter = self.tr('Any File (*)')
+        self._filepath_edit.setPlaceholderText(self.tr('Path to file...'))
+        self.retranslateImportButton()
+    
+    def retranslateImportButton(self):
+        self._import_btn.setText(self.tr('Stop') if self.isImporting() else self.tr('Import'))
+
     ################################################################################
     # Overriden methods
     ################################################################################
+    def changeEvent(self, event: QtCore.QEvent) -> None:
+        if event.type() == QtCore.QEvent.Type.LanguageChange:
+            self.retranslateUi()
+        
+        super().changeEvent(event)
+
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         if not self.isImporting():
             event.accept()
@@ -154,9 +167,11 @@ class ImportingWindow(QtWidgets.QWidget):
 
         ret = QtWidgets.QMessageBox.question(
             self,
-            'Confirmation',
-            'A file is currently being imported. Stopping the importing process '
-            'will result in all progress being lost. Do you want to stop it?',
+            self.tr('Confirmation'),
+            self.tr(
+                'A file is currently being imported. Stopping the importing process '
+                'will result in all progress being lost. Do you want to stop it?'
+            ),
             QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
         )
 
@@ -172,8 +187,8 @@ class ImportingWindow(QtWidgets.QWidget):
     ################################################################################
     def _toggleInput(self, enabled: bool):
         self._settings_button.setEnabled(enabled)
-        self._import_btn.setText('Import' if enabled else 'Stop')
         self._filepath_edit.setEnabled(enabled)
+        self.retranslateImportButton()
 
     def _resetState(self):
         self._worker       = None
@@ -190,7 +205,7 @@ class ImportingWindow(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def _onBrowseFileAction(self):
-        result   = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '', self._filename_filter)
+        result   = QtWidgets.QFileDialog.getOpenFileName(self, self.tr('Open File'), '', self._filename_filter)
         filepath = result[0]
 
         self._filepath_edit.setText(filepath)
@@ -220,8 +235,8 @@ class ImportingWindow(QtWidgets.QWidget):
         if completed:
             QtWidgets.QMessageBox.information(
                 self,
-                'Importing Completed',
-                'The importing was completed with success.'
+                self.tr('Importing Completed'),
+                self.tr('Importing completed with success.')
             )
 
         self._resetState()

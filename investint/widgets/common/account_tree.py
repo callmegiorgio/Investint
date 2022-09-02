@@ -3,6 +3,9 @@ from PyQt5     import QtCore, QtWidgets
 from investint import models
 
 class AccountTreeWidget(QtWidgets.QWidget):
+    ################################################################################
+    # Initialization
+    ################################################################################
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None):
         super().__init__(parent=parent)
 
@@ -23,9 +26,15 @@ class AccountTreeWidget(QtWidgets.QWidget):
 
         self.setLayout(main_layout)
 
+    ################################################################################
+    # Public methods
+    ################################################################################
     def model(self) -> models.AccountTreeModel:
         return self._view.model()
 
+    ################################################################################
+    # Private slots
+    ################################################################################
     @QtCore.pyqtSlot()
     def _onModelReset(self):
         top_level_count = self.model().rowCount()

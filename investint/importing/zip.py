@@ -1,4 +1,3 @@
-import typing
 import zipfile
 from investint import importing
 

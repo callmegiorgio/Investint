@@ -15,13 +15,16 @@ class DatabaseConnectionDialog(QtWidgets.QDialog):
     def askForDatabaseCreation(self, database: str) -> bool:
         ret = QtWidgets.QMessageBox.question(
             self,
-            'Create Database',
-            f"Database '{database}' does not exist. Do you want to create it?",
+            self.tr('Create Database'),
+            self.tr("Database '{}' does not exist. Do you want to create it?").format(database),
             QtWidgets.QMessageBox.StandardButton.Yes|QtWidgets.QMessageBox.StandardButton.No
         )
 
         return (ret == QtWidgets.QMessageBox.StandardButton.Yes)
 
+    ################################################################################
+    # Overriden methods
+    ################################################################################
     def accept(self) -> None:
         try:
             url = self.url()
@@ -39,7 +42,7 @@ class DatabaseConnectionDialog(QtWidgets.QDialog):
             traceback.print_exc()
             QtWidgets.QMessageBox.critical(
                 self,
-                'Database Connection Error',
+                self.tr('Database Connection Error'),
                 f'{exc.__class__.__name__}: {exc}'
             )
         else:

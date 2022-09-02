@@ -6,11 +6,15 @@ from investint import models
 class CompanyDropDown(QtWidgets.QWidget):
     companyChanged = QtCore.pyqtSignal(models.PublicCompany)
 
+    ################################################################################
+    # Initialization
+    ################################################################################
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None):
         super().__init__(parent=parent)
 
         self._initWidgets()
         self._initLayouts()
+        self.retranslateUi()
 
         self._current_model_index = QtCore.QModelIndex()
 
@@ -23,7 +27,6 @@ class CompanyDropDown(QtWidgets.QWidget):
         self._completer.activated[QtCore.QModelIndex].connect(self._onCompleterIndexActivated)
 
         self._edit = QtWidgets.QLineEdit()
-        self._edit.setPlaceholderText('Name or CVM code...')
         self._edit.setCompleter(self._completer)
         self._edit.textEdited.connect(self._onTextEdited)
         self.setFocusProxy(self._edit)
@@ -35,6 +38,9 @@ class CompanyDropDown(QtWidgets.QWidget):
 
         self.setLayout(main_layout)
 
+    ################################################################################
+    # Public methods
+    ################################################################################
     def setCurrentCompany(self, company: typing.Optional[models.PublicCompany]):
         """Sets `company` as the current company being displayed.
 
@@ -77,6 +83,21 @@ class CompanyDropDown(QtWidgets.QWidget):
         # the source model index. See `_onCompleterIndexActivated()`.
         return self._current_model_index.data(QtCore.Qt.ItemDataRole.UserRole + 1)
 
+    def retranslateUi(self):
+        self._edit.setPlaceholderText(self.tr('Name or CVM code...'))
+
+    ################################################################################
+    # Overriden methods
+    ################################################################################
+    def changeEvent(self, event: QtCore.QEvent) -> None:
+        if event.type() == QtCore.QEvent.Type.LanguageChange:
+            self.retranslateUi()
+        
+        super().changeEvent(event)
+
+    ################################################################################
+    # Private slots
+    ################################################################################
     @QtCore.pyqtSlot(str)
     def _onTextEdited(self, text: str):
         self._model.clear()

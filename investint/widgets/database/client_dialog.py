@@ -4,17 +4,21 @@ from PyQt5     import QtCore, QtWidgets
 from investint import widgets
 
 class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
+    ################################################################################
+    # Initialize
+    ################################################################################
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent=parent)
 
         self._initWidgets()
         self._initLayouts()
+        self.retranslateUi()
 
     def _initWidgets(self):
         self.setWindowTitle('Database Connection')
         self.setFixedSize(300, 300)
 
-        self._dialect_lbl = QtWidgets.QLabel('Dialect')
+        self._dialect_lbl   = QtWidgets.QLabel('Dialect')
         self._dialect_combo = QtWidgets.QComboBox()
         self._dialect_combo.addItem('PostgreSQL',           'postgresql')
         self._dialect_combo.addItem('MySQL/MariaDB',        'mysql')
@@ -22,33 +26,33 @@ class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
         self._dialect_combo.addItem('Microsoft SQL Server', 'mssql')
         self._dialect_combo.currentIndexChanged.connect(self.setDefault)
 
-        self._driver_lbl  = QtWidgets.QLabel('Driver')
+        self._driver_lbl  = QtWidgets.QLabel()
         self._driver_edit = QtWidgets.QLineEdit()
         self._driver_edit.textChanged.connect(self._onLineEditTextChanged)
 
-        self._username_lbl  = QtWidgets.QLabel('Username')
+        self._username_lbl  = QtWidgets.QLabel()
         self._username_edit = QtWidgets.QLineEdit()
         self._username_edit.textChanged.connect(self._onLineEditTextChanged)
 
-        self._password_lbl  = QtWidgets.QLabel('Password')
+        self._password_lbl  = QtWidgets.QLabel()
         self._password_edit = QtWidgets.QLineEdit()
         self._password_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self._password_edit.textChanged.connect(self._onLineEditTextChanged)
 
-        self._host_lbl  = QtWidgets.QLabel('Host')
+        self._host_lbl  = QtWidgets.QLabel()
         self._host_edit = QtWidgets.QLineEdit()
         self._host_edit.textChanged.connect(self._onLineEditTextChanged)
 
-        self._port_lbl  = QtWidgets.QLabel('Port')
+        self._port_lbl  = QtWidgets.QLabel()
         self._port_spin = QtWidgets.QSpinBox()
         self._port_spin.setButtonSymbols(QtWidgets.QSpinBox.ButtonSymbols.NoButtons)
         self._port_spin.setRange(1024, 65535)
 
-        self._database_lbl  = QtWidgets.QLabel('Database')
+        self._database_lbl  = QtWidgets.QLabel()
         self._database_edit = QtWidgets.QLineEdit('')
         self._database_edit.textChanged.connect(self._onLineEditTextChanged)
 
-        self._confirm_button = QtWidgets.QPushButton('Confirm')
+        self._confirm_button = QtWidgets.QPushButton()
         self._confirm_button.clicked.connect(self.accept)
         self._confirm_button.setMaximumWidth(80)
 
@@ -187,6 +191,27 @@ class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
         self.setHost('localhost')
         self.setPort(default_port)
 
+    def retranslateUi(self):
+        self._driver_lbl.setText(self.tr('Driver'))
+        self._username_lbl.setText(self.tr('Username'))
+        self._password_lbl.setText(self.tr('Password'))
+        self._host_lbl.setText(self.tr('Host'))
+        self._port_lbl.setText(self.tr('Port'))
+        self._database_lbl.setText(self.tr('Database'))
+        self._confirm_button.setText(self.tr('Confirm'))
+
+    ################################################################################
+    # Overriden methods
+    ################################################################################
+    def changeEvent(self, event: QtCore.QEvent) -> None:
+        if event.type() == QtCore.QEvent.Type.LanguageChange:
+            self.retranslateUi()
+        
+        super().changeEvent(event)
+
+    ################################################################################
+    # Private slots
+    ################################################################################
     @QtCore.pyqtSlot()
     def _onLineEditTextChanged(self):
         string_methods = (

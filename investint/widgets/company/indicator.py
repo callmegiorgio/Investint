@@ -3,16 +3,22 @@ from PyQt5     import QtCore, QtWidgets
 from investint import models, widgets
 
 class CompanyIndicatorWidget(QtWidgets.QWidget):
+    """Shows indicators of a company."""
+
+    ################################################################################
+    # Initialization
+    ################################################################################
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent=parent)
 
         self._initWidgets()
         self._initLayouts()
+        self.retranslateUi()
 
         self._company = None
 
     def _initWidgets(self):
-        self._period_lbl      = QtWidgets.QLabel('Period')
+        self._period_lbl      = QtWidgets.QLabel()
         self._period_selector = widgets.CompanyStatementPeriodSelector()
         self._period_selector.periodChanged.connect(self.applyFilter)
 
@@ -41,9 +47,15 @@ class CompanyIndicatorWidget(QtWidgets.QWidget):
 
         self.setLayout(main_layout)
 
+    ################################################################################
+    # Public methods
+    ################################################################################
     def setCompany(self, co: models.PublicCompany):
         self._company = co
         self.applyFilter()
+
+    def company(self) -> typing.Optional[models.PublicCompany]:
+        return self._company
 
     def applyFilter(self):
         if self._company is None:
@@ -59,3 +71,15 @@ class CompanyIndicatorWidget(QtWidgets.QWidget):
         self._efficiency_table.resizeRowsToContents()
         self._indebtedness_table.resizeRowsToContents()
         self._profitability_table.resizeRowsToContents()
+
+    def retranslateUi(self):
+        self._period_lbl.setText(self.tr('Period'))
+
+    ################################################################################
+    # Overriden methods
+    ################################################################################
+    def changeEvent(self, event: QtCore.QEvent) -> None:
+        if event.type() == QtCore.QEvent.Type.LanguageChange:
+            self.retranslateUi()
+        
+        super().changeEvent(event)

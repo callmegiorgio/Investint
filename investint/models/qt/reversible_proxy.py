@@ -2,7 +2,7 @@ import typing
 from PyQt5 import QtCore
 
 class ReversibleProxyModel(QtCore.QIdentityProxyModel):
-    """Implements a proxy model that reversed provides data of a source model.
+    """Implements a proxy model that reverses a source model.
     
     This class allows reversing data from a source model horizontally, vertically, or both.
     It is also possible to present the source model data unchanged.

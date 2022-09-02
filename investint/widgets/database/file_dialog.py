@@ -4,19 +4,21 @@ from PyQt5     import QtCore, QtWidgets
 from investint import widgets
 
 class DatabaseFileDialog(widgets.DatabaseConnectionDialog):
+    ################################################################################
+    # Initialization
+    ################################################################################
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent=parent)
 
         self._initWidgets()
         self._initLayouts()
+        self.retranslateUi()
 
     def _initWidgets(self):
-        self.setWindowTitle('Open Database File')
         self.setMinimumSize(600, 400)
 
         self._file_dialog = QtWidgets.QFileDialog()
         self._file_dialog.setFileMode(QtWidgets.QFileDialog.FileMode.AnyFile)
-        self._file_dialog.setNameFilter('SQLite database (*.sqlite3)')
         self._file_dialog.accepted.connect(self.accept)
         self._file_dialog.rejected.connect(self.reject)
     
@@ -27,6 +29,9 @@ class DatabaseFileDialog(widgets.DatabaseConnectionDialog):
 
         self.setLayout(main_layout)
 
+    ################################################################################
+    # Public methods
+    ################################################################################
     def setEngine(self, engine: sa.engine.Engine):
         return super().setEngine(engine)
 
@@ -42,3 +47,16 @@ class DatabaseFileDialog(widgets.DatabaseConnectionDialog):
             file = 'new.sqlite3'
 
         return sa.engine.URL('sqlite', database=file)
+
+    def retranslateUi(self):
+        self.setWindowTitle(self.tr('Open Database File'))
+        self._file_dialog.setNameFilter(self.tr('SQLite database (*.sqlite3)'))
+
+    ################################################################################
+    # Overriden methods
+    ################################################################################
+    def changeEvent(self, event: QtCore.QEvent) -> None:
+        if event.type() == QtCore.QEvent.Type.LanguageChange:
+            self.retranslateUi()
+        
+        super().changeEvent(event)

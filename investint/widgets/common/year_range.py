@@ -4,6 +4,9 @@ from PyQt5 import QtCore, QtWidgets
 class YearRangeWidget(QtWidgets.QFrame):
     valueChanged = QtCore.pyqtSignal(int, int)
 
+    ################################################################################
+    # Initialization
+    ################################################################################
     def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent=parent)
     
@@ -30,7 +33,7 @@ class YearRangeWidget(QtWidgets.QFrame):
         self._end_year_combo = QtWidgets.QComboBox()
         self._end_year_combo.currentIndexChanged.connect(self._onEndYearIndexChanged)
 
-        self._until_lbl = QtWidgets.QLabel('until')
+        self._until_lbl = QtWidgets.QLabel(self.tr('until'))
 
     def _initLayouts(self):
         main_layout = QtWidgets.QHBoxLayout()
@@ -41,6 +44,9 @@ class YearRangeWidget(QtWidgets.QFrame):
 
         self.setLayout(main_layout)
 
+    ################################################################################
+    # Public methods
+    ################################################################################
     def setMinimum(self, value: int):
         self.setRange(value, self._maximum)
 
@@ -100,6 +106,9 @@ class YearRangeWidget(QtWidgets.QFrame):
     def endYear(self) -> int:
         return self._end_year_combo.currentData()
 
+    ################################################################################
+    # Private slots
+    ################################################################################
     @QtCore.pyqtSlot(int)
     def _onStartYearIndexChanged(self, index: int):
         if index == -1:
