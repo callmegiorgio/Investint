@@ -4,6 +4,10 @@ from PyQt5     import QtCore, QtWidgets
 from investint import widgets
 
 class DatabaseFileDialog(widgets.DatabaseConnectionDialog):
+    @staticmethod
+    def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:
+        return QtCore.QCoreApplication.translate('DatabaseFileDialog', source_text, disambiguation, n)
+
     ################################################################################
     # Initialization
     ################################################################################
@@ -49,8 +53,8 @@ class DatabaseFileDialog(widgets.DatabaseConnectionDialog):
         return sa.engine.URL('sqlite', database=file)
 
     def retranslateUi(self):
-        self.setWindowTitle(self.tr('Open Database File'))
-        self._file_dialog.setNameFilter(self.tr('SQLite database (*.sqlite3)'))
+        self.setWindowTitle(DatabaseFileDialog.tr('Open Database File'))
+        self._file_dialog.setNameFilter(DatabaseFileDialog.tr('SQLite database (*.sqlite3)'))
 
     ################################################################################
     # Overriden methods

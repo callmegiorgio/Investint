@@ -4,6 +4,10 @@ from PyQt5     import QtCore, QtWidgets
 from investint import widgets
 
 class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
+    @staticmethod
+    def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:
+        return QtCore.QCoreApplication.translate('DatabaseClientDialog', source_text, disambiguation, n)
+
     ################################################################################
     # Initialize
     ################################################################################
@@ -191,16 +195,16 @@ class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
         self.setPort(default_port)
 
     def retranslateUi(self):
-        self.setWindowTitle(self.tr('Database Connection'))
+        self.setWindowTitle(DatabaseClientDialog.tr('Database Connection'))
 
-        self._dialect_lbl.setText(self.tr('Dialect'))
-        self._driver_lbl.setText(self.tr('Driver'))
-        self._username_lbl.setText(self.tr('Username'))
-        self._password_lbl.setText(self.tr('Password'))
-        self._host_lbl.setText(self.tr('Host'))
-        self._port_lbl.setText(self.tr('Port'))
-        self._database_lbl.setText(self.tr('Database'))
-        self._confirm_button.setText(self.tr('Confirm'))
+        self._dialect_lbl.setText(DatabaseClientDialog.tr('Dialect'))
+        self._driver_lbl.setText(DatabaseClientDialog.tr('Driver'))
+        self._username_lbl.setText(DatabaseClientDialog.tr('Username'))
+        self._password_lbl.setText(DatabaseClientDialog.tr('Password'))
+        self._host_lbl.setText(DatabaseClientDialog.tr('Host'))
+        self._port_lbl.setText(DatabaseClientDialog.tr('Port'))
+        self._database_lbl.setText(DatabaseClientDialog.tr('Database'))
+        self._confirm_button.setText(DatabaseClientDialog.tr('Confirm'))
 
     ################################################################################
     # Overriden methods

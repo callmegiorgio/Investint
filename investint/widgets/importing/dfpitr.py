@@ -3,6 +3,10 @@ from PyQt5     import QtCore, QtWidgets
 from investint import importing, widgets
 
 class ImportingDfpItrWindow(widgets.ImportingWindow):
+    @staticmethod
+    def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:
+        return QtCore.QCoreApplication.translate('ImportingDfpItrWindow', source_text, disambiguation, n)
+
     ################################################################################
     # Initialization
     ################################################################################
@@ -24,8 +28,8 @@ class ImportingDfpItrWindow(widgets.ImportingWindow):
     def retranslateUi(self):
         super().retranslateUi()
 
-        self.setWindowTitle(self.tr('Import DFP/ITR'))
-        self.setFileNameFilter(self.tr('DFP/ITR File (*.zip)'))
+        self.setWindowTitle(ImportingDfpItrWindow.tr('Import DFP/ITR'))
+        self.setFileNameFilter(ImportingDfpItrWindow.tr('DFP/ITR File (*.zip)'))
 
     ################################################################################
     # Private slots

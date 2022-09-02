@@ -1,8 +1,12 @@
 import typing
-from PyQt5     import QtWidgets
+from PyQt5     import QtCore, QtWidgets
 from investint import importing, widgets
 
 class ImportingFcaWindow(widgets.ImportingWindow):
+    @staticmethod
+    def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:
+        return QtCore.QCoreApplication.translate('ImportingFcaWindow', source_text, disambiguation, n)
+
     ################################################################################
     # Initialization
     ################################################################################
@@ -20,5 +24,5 @@ class ImportingFcaWindow(widgets.ImportingWindow):
     def retranslateUi(self):
         super().retranslateUi()
 
-        self.setWindowTitle(self.tr('Import FCA'))
-        self.setFileNameFilter(self.tr('FCA File (*.zip)'))
+        self.setWindowTitle(ImportingFcaWindow.tr('Import FCA'))
+        self.setFileNameFilter(ImportingFcaWindow.tr('FCA File (*.zip)'))
