@@ -34,10 +34,21 @@ class MappedBreakdownTableModel(models.BreakdownTableModel):
     'Float'
     """
 
-    def __init__(self, mapped_row_names: typing.Dict[str, str], parent: typing.Optional[QtCore.QObject] = None) -> None:
+    def __init__(self,
+                 mapped_row_names: typing.Union[typing.Iterable[str], typing.Dict[str, str]],
+                 parent: typing.Optional[QtCore.QObject] = None
+    ) -> None:
+        if not isinstance(mapped_row_names, dict):
+            mapped_row_names = {name: name for name in mapped_row_names}
+
         super().__init__(mapped_row_names.keys(), parent)
 
         self._mapped_row_values = list(str(value) for value in mapped_row_names.values())
+
+    def setRowName(self, row: int, name: str):
+        if self._mapped_row_values[row] != name:
+            self._mapped_row_values[row] = name
+            self.headerDataChanged.emit(QtCore.Qt.Orientation.Vertical, row, row)
 
     ################################################################################
     # Overriden methods (BreakdownTableModel)
