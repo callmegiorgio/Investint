@@ -17,7 +17,7 @@ class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
     def _initWidgets(self):
         self.setFixedSize(300, 300)
 
-        self._dialect_lbl   = QtWidgets.QLabel('Dialect')
+        self._dialect_lbl   = QtWidgets.QLabel()
         self._dialect_combo = QtWidgets.QComboBox()
         self._dialect_combo.addItem('PostgreSQL',           'postgresql')
         self._dialect_combo.addItem('MySQL/MariaDB',        'mysql')
@@ -193,6 +193,7 @@ class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
     def retranslateUi(self):
         self.setWindowTitle(self.tr('Database Connection'))
 
+        self._dialect_lbl.setText(self.tr('Dialect'))
         self._driver_lbl.setText(self.tr('Driver'))
         self._username_lbl.setText(self.tr('Username'))
         self._password_lbl.setText(self.tr('Password'))

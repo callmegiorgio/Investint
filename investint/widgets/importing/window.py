@@ -22,6 +22,10 @@ class ImportingWindow(QtWidgets.QWidget):
     importingFinished = QtCore.pyqtSignal(bool)
     importingError    = QtCore.pyqtSignal(type, BaseException, str)
 
+    @staticmethod
+    def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:
+        return QtCore.QCoreApplication.translate('ImportingWindow', source_text, disambiguation, n)
+
     ################################################################################
     # Initialization
     ################################################################################
@@ -144,12 +148,12 @@ class ImportingWindow(QtWidgets.QWidget):
         self._import_btn.setEnabled(False)
 
     def retranslateUi(self):
-        self._filename_filter = self.tr('Any File (*)')
-        self._filepath_edit.setPlaceholderText(self.tr('Path to file...'))
+        self._filename_filter = ImportingWindow.tr('Any File (*)')
+        self._filepath_edit.setPlaceholderText(ImportingWindow.tr('Path to file...'))
         self.retranslateImportButton()
     
     def retranslateImportButton(self):
-        self._import_btn.setText(self.tr('Stop') if self.isImporting() else self.tr('Import'))
+        self._import_btn.setText(ImportingWindow.tr('Stop') if self.isImporting() else ImportingWindow.tr('Import'))
 
     ################################################################################
     # Overriden methods
@@ -167,8 +171,8 @@ class ImportingWindow(QtWidgets.QWidget):
 
         ret = QtWidgets.QMessageBox.question(
             self,
-            self.tr('Confirmation'),
-            self.tr(
+            ImportingWindow.tr('Confirmation'),
+            ImportingWindow.tr(
                 'A file is currently being imported. Stopping the importing process '
                 'will result in all progress being lost. Do you want to stop it?'
             ),
@@ -205,7 +209,13 @@ class ImportingWindow(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def _onBrowseFileAction(self):
-        result   = QtWidgets.QFileDialog.getOpenFileName(self, self.tr('Open File'), '', self._filename_filter)
+        result = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            ImportingWindow.tr('Open File'),
+            '',
+            self._filename_filter
+        )
+        
         filepath = result[0]
 
         self._filepath_edit.setText(filepath)
@@ -235,8 +245,8 @@ class ImportingWindow(QtWidgets.QWidget):
         if completed:
             QtWidgets.QMessageBox.information(
                 self,
-                self.tr('Importing Completed'),
-                self.tr('Importing completed with success.')
+                ImportingWindow.tr('Importing Completed'),
+                ImportingWindow.tr('Importing completed with success.')
             )
 
         self._resetState()

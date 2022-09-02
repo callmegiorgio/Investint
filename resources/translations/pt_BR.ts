@@ -29,11 +29,6 @@
         <translation>Recebíveis</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="43"/>
-        <source>Noncurrent Assets</source>
-        <translation type="obsolete">Ativo Não Circulante</translation>
-    </message>
-    <message>
         <location filename="../../investint/models/qt/company_balance_sheet.py" line="44"/>
         <source>Investments</source>
         <translation>Investimentos</translation>
@@ -425,37 +420,37 @@
 <context>
     <name>DatabaseClientDialog</name>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="196"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="197"/>
         <source>Driver</source>
         <translation>Driver</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="197"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="198"/>
         <source>Username</source>
         <translation>Usuário</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="198"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="199"/>
         <source>Password</source>
         <translation>Senha</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="199"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="200"/>
         <source>Host</source>
         <translation>Host</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="200"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="201"/>
         <source>Port</source>
         <translation>Porta</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="201"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="202"/>
         <source>Database</source>
         <translation>Banco de dados</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="202"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="203"/>
         <source>Confirm</source>
         <translation>Confirmar</translation>
     </message>
@@ -464,23 +459,33 @@
         <source>Database Connection</source>
         <translation>Conexão ao Banco de Dados</translation>
     </message>
+    <message>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="196"/>
+        <source>Dialect</source>
+        <translation>Dialeto</translation>
+    </message>
 </context>
 <context>
     <name>DatabaseConnectionDialog</name>
     <message>
-        <location filename="../../investint/widgets/database/connection_dialog.py" line="16"/>
+        <location filename="../../investint/widgets/database/connection_dialog.py" line="21"/>
         <source>Create Database</source>
         <translation>Criar Banco de Dados</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/connection_dialog.py" line="16"/>
+        <location filename="../../investint/widgets/database/connection_dialog.py" line="21"/>
         <source>Database &apos;{}&apos; does not exist. Do you want to create it?</source>
         <translation>Banco de dados &apos;{}&apos; não existe. Você deseja criá-lo?</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/connection_dialog.py" line="43"/>
-        <source>Database Connection Error</source>
-        <translation>Erro de Conexão com o Banco de Dados</translation>
+        <location filename="../../investint/widgets/database/connection_dialog.py" line="60"/>
+        <source>Connection Error</source>
+        <translation>Erro de Conexão</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/database/connection_dialog.py" line="50"/>
+        <source>The driver &apos;{}&apos; wasn&apos;t found. Ensure the driver plugin is installed before running the application.</source>
+        <translation>O driver &apos;{}&apos; não foi encontrado. Certifique-se de que o plugin do driver está instalado antes de executar a aplicação.</translation>
     </message>
 </context>
 <context>

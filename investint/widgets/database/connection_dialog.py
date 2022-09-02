@@ -1,10 +1,15 @@
 import sqlalchemy       as sa
 import sqlalchemy_utils as sa_utils
 import traceback
+import typing
 from PyQt5 import QtCore, QtWidgets
 
 class DatabaseConnectionDialog(QtWidgets.QDialog):
     engineCreated = QtCore.pyqtSignal(sa.engine.Engine)
+
+    @staticmethod
+    def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:
+        return QtCore.QCoreApplication.translate('DatabaseConnectionDialog', source_text, disambiguation, n)
 
     def url(self) -> sa.engine.URL:
         raise NotImplementedError()
@@ -15,8 +20,8 @@ class DatabaseConnectionDialog(QtWidgets.QDialog):
     def askForDatabaseCreation(self, database: str) -> bool:
         ret = QtWidgets.QMessageBox.question(
             self,
-            self.tr('Create Database'),
-            self.tr("Database '{}' does not exist. Do you want to create it?").format(database),
+            DatabaseConnectionDialog.tr('Create Database'),
+            DatabaseConnectionDialog.tr("Database '{}' does not exist. Do you want to create it?").format(database),
             QtWidgets.QMessageBox.StandardButton.Yes|QtWidgets.QMessageBox.StandardButton.No
         )
 
@@ -40,10 +45,22 @@ class DatabaseConnectionDialog(QtWidgets.QDialog):
 
         except Exception as exc:
             traceback.print_exc()
+
+            if isinstance(exc, ModuleNotFoundError):
+                msg_text = (
+                    DatabaseConnectionDialog.tr(
+                        "The driver '{}' wasn't found. Ensure the driver " 
+                        "plugin is installed before running the application."
+                    )
+                    .format(exc.name)
+                )
+            else:
+                msg_text = f'{exc.__class__.__name__}: {exc}'
+
             QtWidgets.QMessageBox.critical(
                 self,
-                self.tr('Database Connection Error'),
-                f'{exc.__class__.__name__}: {exc}'
+                DatabaseConnectionDialog.tr('Connection Error'),
+                msg_text
             )
         else:
             self.engineCreated.emit(engine)
