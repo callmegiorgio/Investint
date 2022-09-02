@@ -4,79 +4,84 @@
 <context>
     <name>CompanyBalanceSheetModel</name>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="54"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="38"/>
         <source>Total Assets</source>
         <translation>Ativo Total</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="55"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="39"/>
         <source>Current Assets</source>
         <translation>Ativo Circulante</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="56"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="40"/>
         <source>Cash and Cash Equivalents</source>
         <translation>Caixa e Equivalente de Caixa</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="57"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="41"/>
         <source>Financial Investments</source>
         <translation>Aplicações Financeiras</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="58"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="42"/>
         <source>Receivables</source>
         <translation>Recebíveis</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="59"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="43"/>
         <source>Noncurrent Assets</source>
-        <translation>Ativo Não Circulante</translation>
+        <translation type="obsolete">Ativo Não Circulante</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="60"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="44"/>
         <source>Investments</source>
         <translation>Investimentos</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="61"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="45"/>
         <source>Fixed Assets</source>
         <translation>Imobilizado</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="62"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="46"/>
         <source>Intangible Assets</source>
         <translation>Intangível</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="63"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="47"/>
         <source>Total Liabilities</source>
         <translation>Passivo Total</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="64"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="48"/>
         <source>Current Liabilities</source>
         <translation>Passivo Circulante</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="65"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="49"/>
         <source>Current Loans and Financing</source>
         <translation>Empréstimos e Financiamentos de Curto Prazo</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="66"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="50"/>
         <source>Non-Current Liabilities</source>
         <translation>Passivo Não Circulante</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="67"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="51"/>
         <source>Non-Current Loans and Financing</source>
         <translation>Empréstimos e Financiamentos de Longo Prazo</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_balance_sheet.py" line="68"/>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="52"/>
         <source>Equity</source>
         <translation>Patrimônio Líquido</translation>
+    </message>
+    <message>
+        <location filename="../../investint/models/qt/company_balance_sheet.py" line="43"/>
+        <source>Non-Current Assets</source>
+        <translation>Ativo Não Circulante</translation>
     </message>
 </context>
 <context>
@@ -143,7 +148,7 @@
     <message>
         <location filename="../../investint/widgets/company/financials.py" line="49"/>
         <source>Balance Sheet</source>
-        <translation>Balaço Patrimonial</translation>
+        <translation>Balanço Patrimonial</translation>
     </message>
     <message>
         <location filename="../../investint/widgets/company/financials.py" line="50"/>
@@ -252,67 +257,67 @@
 <context>
     <name>CompanyIncomeStatementModel</name>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="47"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="33"/>
         <source>Revenue</source>
         <translation>Receita</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="48"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="34"/>
         <source>Costs</source>
         <translation>Custos</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="49"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="35"/>
         <source>Gross Profit</source>
         <translation>Lucro Bruto</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="50"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="36"/>
         <source>Operating Income and Expenses</source>
         <translation>Receitas e Despesas Operacionais</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="51"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="37"/>
         <source>EBITDA</source>
         <translation>EBITDA</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="52"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="38"/>
         <source>Depreciation and Amortization</source>
         <translation>Depreciação e Amortização</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="53"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="39"/>
         <source>EBIT</source>
         <translation>EBIT</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="54"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="40"/>
         <source>Non-Operating Result</source>
         <translation>Resultado Não Operacional</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="55"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="41"/>
         <source>Earnings Before Tax</source>
         <translation>Resultado Antes dos Tributos</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="56"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="42"/>
         <source>Tax Expenses</source>
         <translation>Tributos</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="57"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="43"/>
         <source>Continuing Operation Result</source>
         <translation>Resultado Líquido das Operações Continuadas</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="58"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="44"/>
         <source>Discontinued Operation Result</source>
         <translation>Resultado Líquido das Operações Descontinuadas</translation>
     </message>
     <message>
-        <location filename="../../investint/models/qt/company_income_statement.py" line="59"/>
+        <location filename="../../investint/models/qt/company_income_statement.py" line="45"/>
         <source>Net Income</source>
         <translation>Lucro Líquido</translation>
     </message>
@@ -358,7 +363,7 @@
 <context>
     <name>CompanyIndicatorWidget</name>
     <message>
-        <location filename="../../investint/widgets/company/indicator.py" line="76"/>
+        <location filename="../../investint/widgets/company/indicator.py" line="81"/>
         <source>Period</source>
         <translation>Período</translation>
     </message>
@@ -389,12 +394,12 @@
 <context>
     <name>CompanyStatementWidget</name>
     <message>
-        <location filename="../../investint/widgets/company/statement.py" line="95"/>
+        <location filename="../../investint/widgets/company/statement.py" line="96"/>
         <source>Toggle HA</source>
         <translation>Ativar/desativar HA</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/company/statement.py" line="96"/>
+        <location filename="../../investint/widgets/company/statement.py" line="97"/>
         <source>Toggle HR</source>
         <translation>Ativar/desativar HR</translation>
     </message>
@@ -420,39 +425,44 @@
 <context>
     <name>DatabaseClientDialog</name>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="195"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="196"/>
         <source>Driver</source>
         <translation>Driver</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="196"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="197"/>
         <source>Username</source>
         <translation>Usuário</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="197"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="198"/>
         <source>Password</source>
         <translation>Senha</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="198"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="199"/>
         <source>Host</source>
         <translation>Host</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="199"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="200"/>
         <source>Port</source>
         <translation>Porta</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="200"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="201"/>
         <source>Database</source>
         <translation>Banco de dados</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="201"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="202"/>
         <source>Confirm</source>
         <translation>Confirmar</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="194"/>
+        <source>Database Connection</source>
+        <translation>Conexão ao Banco de Dados</translation>
     </message>
 </context>
 <context>
@@ -515,19 +525,24 @@
 <context>
     <name>ImportingSelectionDialog</name>
     <message>
-        <location filename="../../investint/widgets/importing/selection_dialog.py" line="81"/>
+        <location filename="../../investint/widgets/importing/selection_dialog.py" line="84"/>
         <source>Add</source>
         <translation>Adicionar</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/importing/selection_dialog.py" line="82"/>
+        <location filename="../../investint/widgets/importing/selection_dialog.py" line="85"/>
         <source>Remove</source>
         <translation>Remover</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/importing/selection_dialog.py" line="83"/>
+        <location filename="../../investint/widgets/importing/selection_dialog.py" line="86"/>
         <source>Confirm</source>
         <translation>Confirmar</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/importing/selection_dialog.py" line="82"/>
+        <source>Importing Settings</source>
+        <translation>Configurações de Importação</translation>
     </message>
 </context>
 <context>
@@ -581,49 +596,64 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="101"/>
+        <location filename="../../investint/widgets/main_window.py" line="143"/>
         <source>&amp;Open...</source>
         <translation>&amp;Abrir...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="102"/>
+        <location filename="../../investint/widgets/main_window.py" line="144"/>
         <source>Open a database from a file</source>
         <translation>Abrir um banco de dado de um arquivo</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="104"/>
+        <location filename="../../investint/widgets/main_window.py" line="146"/>
         <source>&amp;Connect...</source>
         <translation>&amp;Conectar...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="105"/>
+        <location filename="../../investint/widgets/main_window.py" line="147"/>
         <source>Connect to a database over network</source>
         <translation>Conectar a um banco de dados pela rede</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="125"/>
+        <location filename="../../investint/widgets/main_window.py" line="176"/>
         <source>In-Memory</source>
         <translation>Na memória</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="107"/>
+        <location filename="../../investint/widgets/main_window.py" line="155"/>
         <source>Companies from FCA...</source>
         <translation>Companhias do FCA...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="108"/>
+        <location filename="../../investint/widgets/main_window.py" line="156"/>
         <source>Statements from DFP/ITR...</source>
         <translation>Demonstrações do DFP/ITR...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="110"/>
+        <location filename="../../investint/widgets/main_window.py" line="141"/>
         <source>&amp;File</source>
         <translation>&amp;Arquivo</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="111"/>
+        <location filename="../../investint/widgets/main_window.py" line="154"/>
         <source>&amp;Import</source>
         <translation>&amp;Importar</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/main_window.py" line="149"/>
+        <source>&amp;Exit</source>
+        <translation>&amp;Sair</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/main_window.py" line="161"/>
+        <source>Help</source>
+        <translation>Ajuda</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/main_window.py" line="162"/>
+        <source>About</source>
+        <translation>Sobre</translation>
     </message>
 </context>
 <context>

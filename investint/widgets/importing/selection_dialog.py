@@ -12,6 +12,7 @@ class ImportingSelectionDialog(QtWidgets.QDialog):
 
         self._initWidgets()
         self._initLayouts()
+        self.retranslateUi()
         
         self._companies = []
 
@@ -78,6 +79,8 @@ class ImportingSelectionDialog(QtWidgets.QDialog):
         return self._companies.copy()
 
     def retranslateUi(self):
+        self.setWindowTitle(self.tr('Importing Settings'))
+
         self._add_button.setText(self.tr('Add'))
         self._remove_button.setText(self.tr('Remove'))
         self._confirm_button.setText(self.tr('Confirm'))

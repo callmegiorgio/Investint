@@ -32,7 +32,7 @@ class ImportingDfpItrWindow(widgets.ImportingWindow):
     ################################################################################
     @QtCore.pyqtSlot()
     def _onSettingsButtonClicked(self):
-        dialog = widgets.ImportingSelectionDialog()
+        dialog = widgets.ImportingSelectionDialog(self)
         dialog.setCompanies(self._companies)
         
         if dialog.exec():

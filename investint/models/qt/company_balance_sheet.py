@@ -40,7 +40,7 @@ class CompanyBalanceSheetModel(models.CompanyStatementModel):
         self.setRowName(2,  self.tr('Cash and Cash Equivalents'))
         self.setRowName(3,  self.tr('Financial Investments'))
         self.setRowName(4,  self.tr('Receivables'))
-        self.setRowName(5,  self.tr('Noncurrent Assets'))
+        self.setRowName(5,  self.tr('Non-Current Assets'))
         self.setRowName(6,  self.tr('Investments'))
         self.setRowName(7,  self.tr('Fixed Assets'))
         self.setRowName(8,  self.tr('Intangible Assets'))
