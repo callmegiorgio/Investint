@@ -4,7 +4,7 @@ import sqlalchemy.exc  as sa_exc
 import sqlalchemy.pool as sa_pool
 import sys
 from PyQt5     import QtCore, QtWidgets
-from investint import widgets
+from investint import resources, widgets
 
 def createInMemoryEngine():
     return sa.create_engine(
