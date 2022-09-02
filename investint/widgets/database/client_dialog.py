@@ -15,7 +15,6 @@ class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
         self.retranslateUi()
 
     def _initWidgets(self):
-        self.setWindowTitle('Database Connection')
         self.setFixedSize(300, 300)
 
         self._dialect_lbl   = QtWidgets.QLabel('Dialect')
@@ -192,6 +191,8 @@ class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
         self.setPort(default_port)
 
     def retranslateUi(self):
+        self.setWindowTitle(self.tr('Database Connection'))
+
         self._driver_lbl.setText(self.tr('Driver'))
         self._username_lbl.setText(self.tr('Username'))
         self._password_lbl.setText(self.tr('Password'))
