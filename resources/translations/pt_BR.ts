@@ -621,84 +621,99 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="190"/>
+        <location filename="../../investint/widgets/main_window.py" line="193"/>
         <source>&amp;Open...</source>
         <translation>&amp;Abrir...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="191"/>
-        <source>Open a database from a file</source>
-        <translation>Abrir um banco de dado de um arquivo</translation>
-    </message>
-    <message>
-        <location filename="../../investint/widgets/main_window.py" line="193"/>
+        <location filename="../../investint/widgets/main_window.py" line="196"/>
         <source>&amp;Connect...</source>
         <translation>&amp;Conectar...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="194"/>
+        <location filename="../../investint/widgets/main_window.py" line="197"/>
         <source>Connect to a database over network</source>
         <translation>Conectar a um banco de dados pela rede</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="226"/>
+        <location filename="../../investint/widgets/main_window.py" line="234"/>
         <source>In-Memory</source>
         <translation>Na memória</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="205"/>
+        <location filename="../../investint/widgets/main_window.py" line="210"/>
         <source>Companies from FCA...</source>
         <translation>Companhias do FCA...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="206"/>
+        <location filename="../../investint/widgets/main_window.py" line="213"/>
         <source>Statements from DFP/ITR...</source>
         <translation>Demonstrações do DFP/ITR...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="185"/>
+        <location filename="../../investint/widgets/main_window.py" line="188"/>
         <source>&amp;File</source>
         <translation>&amp;Arquivo</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="204"/>
+        <location filename="../../investint/widgets/main_window.py" line="208"/>
         <source>&amp;Import</source>
         <translation>&amp;Importar</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="199"/>
+        <location filename="../../investint/widgets/main_window.py" line="202"/>
         <source>&amp;Exit</source>
         <translation>&amp;Sair</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="211"/>
+        <location filename="../../investint/widgets/main_window.py" line="219"/>
         <source>Help</source>
         <translation>Ajuda</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="212"/>
+        <location filename="../../investint/widgets/main_window.py" line="220"/>
         <source>About</source>
         <translation>Sobre</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="187"/>
+        <location filename="../../investint/widgets/main_window.py" line="190"/>
         <source>&amp;New</source>
         <translation>&amp;Novo</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="188"/>
+        <location filename="../../investint/widgets/main_window.py" line="191"/>
         <source>Create a new database in memory</source>
         <translation>Criar um novo banco de dados na memória</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="196"/>
+        <location filename="../../investint/widgets/main_window.py" line="199"/>
         <source>&amp;Save as...</source>
         <translation>&amp;Salvar como...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="197"/>
+        <location filename="../../investint/widgets/main_window.py" line="200"/>
         <source>Save open database to a file</source>
         <translation>Salvar banco de dados aberto para um arquivo</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/main_window.py" line="194"/>
+        <source>Open a database file</source>
+        <translation>Abrir um arquivo de banco de dados</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/main_window.py" line="203"/>
+        <source>Exit the application</source>
+        <translation>Encerrar a aplicação</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/main_window.py" line="211"/>
+        <source>Import companies from a FCA file taken from CVM&apos;s Data Portal</source>
+        <translation>Importar companhias de um arquivo FCA obtido do Portal de Dados da CVM</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/main_window.py" line="214"/>
+        <source>Import statements from a DFP or ITR file taken from CVM&apos;s Data Portal</source>
+        <translation>Importar demonstrações de um arquivo DFP ou ITR obtido do Portal de Dados da CVM</translation>
     </message>
 </context>
 <context>

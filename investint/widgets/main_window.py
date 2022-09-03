@@ -15,6 +15,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self._initWidgets()
         self._initActions()
         self._initMenus()
+
+        self.statusBar()
+
         self.retranslateUi()
 
     def _initWidgets(self):
@@ -185,10 +188,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self._file_menu.setTitle(self.tr('&File'))
 
         self._new_db_file_action.setText(self.tr('&New'))
-        self._new_db_file_action.setToolTip(self.tr('Create a new database in memory'))
+        self._new_db_file_action.setStatusTip(self.tr('Create a new database in memory'))
 
         self._open_db_file_action.setText(self.tr('&Open...'))
-        self._open_db_file_action.setStatusTip(self.tr('Open a database from a file'))
+        self._open_db_file_action.setStatusTip(self.tr('Open a database file'))
 
         self._connect_db_action.setText(self.tr('&Connect...'))
         self._connect_db_action.setStatusTip(self.tr('Connect to a database over network'))
@@ -197,13 +200,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self._save_db_as_action.setStatusTip(self.tr('Save open database to a file'))
 
         self._exit_action.setText(self.tr('&Exit'))
+        self._exit_action.setStatusTip(self.tr('Exit the application'))
 
         #===========================================================
         # Menu: File / Import
         #===========================================================
         self._import_menu.setTitle(self.tr('&Import'))
+
         self._import_fca_action.setText(self.tr('Companies from FCA...'))
+        self._import_fca_action.setStatusTip(self.tr("Import companies from a FCA file taken from CVM's Data Portal"))
+
         self._import_dfpitr_action.setText(self.tr('Statements from DFP/ITR...'))
+        self._import_dfpitr_action.setStatusTip(self.tr("Import statements from a DFP or ITR file taken from CVM's Data Portal"))
 
         #===========================================================
         # Menu: Help
