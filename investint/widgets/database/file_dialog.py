@@ -23,6 +23,8 @@ class DatabaseFileDialog(widgets.DatabaseConnectionDialog):
 
         self._file_dialog = QtWidgets.QFileDialog()
         self._file_dialog.setFileMode(QtWidgets.QFileDialog.FileMode.AnyFile)
+        self._file_dialog.setMimeTypeFilters(['application/vnd.sqlite3'])
+        self._file_dialog.setDefaultSuffix('sqlite3')
         self._file_dialog.accepted.connect(self.accept)
         self._file_dialog.rejected.connect(self.reject)
     
@@ -40,21 +42,20 @@ class DatabaseFileDialog(widgets.DatabaseConnectionDialog):
         return super().setEngine(engine)
 
     def url(self) -> sa.engine.URL:
-        files = self._file_dialog.selectedFiles()
+        file_names = self._file_dialog.selectedFiles()
 
         try:
-            file = files[0]
+            file_name = file_names[0]
         except IndexError:
-            file = ''
+            file_name = ''
 
-        if file == '':
-            file = 'new.sqlite3'
+        if file_name == '':
+            file_name = 'investint.sqlite3'
 
-        return sa.engine.URL('sqlite', database=file)
+        return sa.engine.URL('sqlite', database=file_name)
 
     def retranslateUi(self):
         self.setWindowTitle(DatabaseFileDialog.tr('Open Database File'))
-        self._file_dialog.setNameFilter(DatabaseFileDialog.tr('SQLite database (*.sqlite3)'))
 
     ################################################################################
     # Overriden methods
