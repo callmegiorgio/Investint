@@ -30,15 +30,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self._open_db_file_action = QtWidgets.QAction()
         self._open_db_file_action.setIcon(fugue.icon('database'))
         self._open_db_file_action.setShortcut('Ctrl+O')
-        self._open_db_file_action.triggered.connect(
-            functools.partial(self.showDatabaseConnectionDialog, widgets.DatabaseFileDialog)
-        )
+        self._open_db_file_action.triggered.connect(self.showDatabaseFileDialog)
 
         self._connect_db_action = QtWidgets.QAction()
         self._connect_db_action.setIcon(fugue.icon('database-network'))
-        self._connect_db_action.triggered.connect(
-            functools.partial(self.showDatabaseConnectionDialog, widgets.DatabaseClientDialog)
-        )
+        self._connect_db_action.triggered.connect(self.showDatabaseClientDialog)
 
         self._import_fca_action = QtWidgets.QAction()
         self._import_fca_action.setIcon(fugue.icon('building'))
@@ -98,15 +94,22 @@ class MainWindow(QtWidgets.QMainWindow):
         win.importingFinished.connect(functools.partial(self.centralWidget().setEnabled, True))
         win.show()
 
-    def showDatabaseConnectionDialog(self, cls: typing.Type[widgets.DatabaseConnectionDialog]):
-        dialog = cls(self)
+    def showDatabaseFileDialog(self):
+        engine = widgets.getOpenDatabaseFileEngine(self)
+
+        if engine is not None:
+            self.setEngine(engine)
+
+    def showDatabaseClientDialog(self):
+        dialog = widgets.DatabaseClientDialog(self)
         engine = self.engine()
 
         if engine is not None:
-            dialog.setEngine(engine)
+            dialog.setUrl(engine.url)
 
-        dialog.engineCreated.connect(self.setEngine)
-        dialog.exec()
+        if dialog.exec():
+            engine = sa.create_engine(dialog.url(), echo=True, future=True)
+            self.setEngine(engine)
 
     def showAbout(self):
         about = (

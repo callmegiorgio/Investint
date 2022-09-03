@@ -1,9 +1,10 @@
-import sqlalchemy as sa
+import sqlalchemy       as sa
+import sqlalchemy_utils as sa_utils
+import traceback
 import typing
-from PyQt5     import QtCore, QtWidgets
-from investint import widgets
+from PyQt5 import QtCore, QtWidgets
 
-class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
+class DatabaseClientDialog(QtWidgets.QDialog):
     @staticmethod
     def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:
         return QtCore.QCoreApplication.translate('DatabaseClientDialog', source_text, disambiguation, n)
@@ -87,8 +88,15 @@ class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
 
         self.setLayout(main_layout)
 
-    def setEngine(self, engine: sa.engine.Engine):
-        self.setUrl(engine.url)
+    def askForDatabaseCreation(self, database: str) -> bool:
+        ret = QtWidgets.QMessageBox.question(
+            self,
+            DatabaseClientDialog.tr('Create Database'),
+            DatabaseClientDialog.tr("Database '{}' does not exist. Do you want to create it?").format(database),
+            QtWidgets.QMessageBox.StandardButton.Yes|QtWidgets.QMessageBox.StandardButton.No
+        )
+
+        return (ret == QtWidgets.QMessageBox.StandardButton.Yes)
     
     def setDialect(self, dialect: str):
         index = self._dialect_combo.findData(dialect)
@@ -209,6 +217,56 @@ class DatabaseClientDialog(widgets.DatabaseConnectionDialog):
     ################################################################################
     # Overriden methods
     ################################################################################
+    def accept(self) -> None:
+        try:
+            url = self.url()
+
+            # We have to remove the "database" from the given url in order
+            # to test the engine's connection only. Otherwise, SQLAlchemy
+            # will check for BOTH the connection and the database, and will
+            # raise the same exception `OperationalError` for both of them,
+            # which makes it impossible to know whether it was an error of
+            # connection or of invalid database.
+            url_without_database = sa.engine.URL.create(
+                drivername = url.drivername,
+                username   = url.username,
+                password   = url.password,
+                host       = url.host,
+                port       = url.port,
+                database   = None
+            )
+
+            engine = sa.create_engine(url_without_database, echo=True, future=True)
+            engine.connect().close()
+
+            if not sa_utils.database_exists(url):
+                if self.askForDatabaseCreation(url.database):
+                    sa_utils.create_database(url)
+                else:
+                    return
+
+        except Exception as exc:
+            traceback.print_exc()
+
+            if isinstance(exc, ModuleNotFoundError):
+                msg_text = (
+                    DatabaseClientDialog.tr(
+                        "The driver '{}' wasn't found. Ensure the driver " 
+                        "plugin is installed before running the application."
+                    )
+                    .format(exc.name)
+                )
+            else:
+                msg_text = f'{exc.__class__.__name__}: {exc}'
+
+            QtWidgets.QMessageBox.critical(
+                self,
+                DatabaseClientDialog.tr('Connection Error'),
+                msg_text
+            )
+        else:
+            super().accept()
+
     def changeEvent(self, event: QtCore.QEvent) -> None:
         if event.type() == QtCore.QEvent.Type.LanguageChange:
             self.retranslateUi()

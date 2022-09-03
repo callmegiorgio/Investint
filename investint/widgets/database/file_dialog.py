@@ -1,67 +1,25 @@
 import sqlalchemy as sa
 import typing
-from PyQt5     import QtCore, QtWidgets
-from investint import widgets
+from PyQt5 import QtWidgets
 
-class DatabaseFileDialog(widgets.DatabaseConnectionDialog):
-    @staticmethod
-    def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:
-        return QtCore.QCoreApplication.translate('DatabaseFileDialog', source_text, disambiguation, n)
-
-    ################################################################################
-    # Initialization
-    ################################################################################
-    def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
-        super().__init__(parent=parent)
-
-        self._initWidgets()
-        self._initLayouts()
-        self.retranslateUi()
-
-    def _initWidgets(self):
-        self.setMinimumSize(600, 400)
-
-        self._file_dialog = QtWidgets.QFileDialog()
-        self._file_dialog.setFileMode(QtWidgets.QFileDialog.FileMode.AnyFile)
-        self._file_dialog.setMimeTypeFilters(['application/vnd.sqlite3'])
-        self._file_dialog.setDefaultSuffix('sqlite3')
-        self._file_dialog.accepted.connect(self.accept)
-        self._file_dialog.rejected.connect(self.reject)
+def getOpenDatabaseFileEngine(parent: typing.Optional[QtWidgets.QWidget] = None) -> typing.Optional[sa.engine.Engine]:
+    dialog = QtWidgets.QFileDialog(parent)
+    dialog.setOption(QtWidgets.QFileDialog.Option.DontUseNativeDialog, False)
+    dialog.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFile)
+    dialog.setMimeTypeFilters(['application/vnd.sqlite3'])
+    dialog.setDefaultSuffix('sqlite3')
     
-    def _initLayouts(self):
-        main_layout = QtWidgets.QVBoxLayout()
-        main_layout.addWidget(self._file_dialog)
-        main_layout.setContentsMargins(QtCore.QMargins())
+    if not dialog.exec():
+        return None
 
-        self.setLayout(main_layout)
+    file_names = dialog.selectedFiles()
 
-    ################################################################################
-    # Public methods
-    ################################################################################
-    def setEngine(self, engine: sa.engine.Engine):
-        return super().setEngine(engine)
+    try:
+        file_name = file_names[0]
+    except IndexError:
+        return None
 
-    def url(self) -> sa.engine.URL:
-        file_names = self._file_dialog.selectedFiles()
+    url    = sa.engine.URL('sqlite', database=file_name)
+    engine = sa.engine.create_engine(url, echo=True, future=True)
 
-        try:
-            file_name = file_names[0]
-        except IndexError:
-            file_name = ''
-
-        if file_name == '':
-            file_name = 'investint.sqlite3'
-
-        return sa.engine.URL('sqlite', database=file_name)
-
-    def retranslateUi(self):
-        self.setWindowTitle(DatabaseFileDialog.tr('Open Database File'))
-
-    ################################################################################
-    # Overriden methods
-    ################################################################################
-    def changeEvent(self, event: QtCore.QEvent) -> None:
-        if event.type() == QtCore.QEvent.Type.LanguageChange:
-            self.retranslateUi()
-        
-        super().changeEvent(event)
+    return engine
