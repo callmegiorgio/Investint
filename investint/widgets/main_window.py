@@ -181,7 +181,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 window_title_words.append(database)
         else:
             url = engine.url
-            window_title_words.append(f"{url.username}'@'{url.host}:{url.port}'/'{url.database}' ({url.drivername})")
+            window_title_words.append(url.render_as_string(hide_password=True))
 
         self.setWindowTitle(' - '.join(window_title_words))
 
