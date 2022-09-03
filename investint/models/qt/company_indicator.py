@@ -32,6 +32,7 @@ class CompanyIndicatorModel(models.MappedBreakdownTableModel):
               .join(B, D.id == B.document_id)
               .where(D.company_id == company_id)
               .where(D.type       == document_type)
+              .order_by(D.reference_date.asc())
         )
 
         session = database.Session()
