@@ -5,12 +5,8 @@ from PyQt5     import QtCore, QtWidgets
 from investint import database, resources, widgets
 
 def createFileEngine(file_path: str):
-    # TODO: since abs_path is only for printing purposes on window title,
-    #       move it to MainWindow, duh.
-    abs_path = os.path.abspath(file_path)
-
     try:
-        engine = database.createEngineFromFile(abs_path)
+        engine = database.createEngineFromFile(file_path)
         engine.connect().close()
     except sa_exc.SQLAlchemyError as exc:
         print(exc.__class__.__name__, ': ', exc, sep='')

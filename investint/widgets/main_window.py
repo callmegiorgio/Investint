@@ -225,7 +225,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if database is None:
                 window_title_words.append(self.tr('In-Memory'))
             else:
-                window_title_words.append(database)
+                window_title_words.append(os.path.normpath(os.path.abspath(database)))
         else:
             url = engine.url
             window_title_words.append(url.render_as_string(hide_password=True))
