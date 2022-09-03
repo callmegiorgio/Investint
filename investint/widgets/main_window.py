@@ -1,4 +1,5 @@
 import functools
+import os
 import pyqt5_fugueicons as fugue
 import sqlalchemy       as sa
 import typing
@@ -36,6 +37,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self._open_db_file_action.setIcon(fugue.icon('database'))
         self._open_db_file_action.setShortcut('Ctrl+O')
         self._open_db_file_action.triggered.connect(self.showDatabaseFileDialog)
+
+        self._save_db_as_action = QtWidgets.QAction()
+        self._save_db_as_action.setIcon(fugue.icon('disk-black'))
+        self._save_db_as_action.setShortcut('Ctrl+S')
+        self._save_db_as_action.triggered.connect(self.save)
 
         self._connect_db_action = QtWidgets.QAction()
         self._connect_db_action.setIcon(fugue.icon('database-network'))
@@ -81,6 +87,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self._file_menu.addAction(self._new_db_file_action)
         self._file_menu.addAction(self._open_db_file_action)
         self._file_menu.addAction(self._connect_db_action)
+        self._file_menu.addSeparator()
+        self._file_menu.addAction(self._save_db_as_action)
         self._file_menu.addSeparator()
         self._file_menu.addMenu(self._import_menu)
         self._file_menu.addSeparator()
@@ -129,6 +137,9 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
     def setEngine(self, engine: sa.engine.Engine):
+        if self._engine is engine:
+            return
+
         database.metadata.create_all(engine)
         database.Session.remove()
         database.Session.configure(bind=engine)
@@ -136,10 +147,34 @@ class MainWindow(QtWidgets.QMainWindow):
         self._engine = engine
         self._company_widget.refresh()
 
-        self.retranslateWindowTitle()        
+        self.retranslateWindowTitle()
+
+        self._new_db_file_action.setEnabled(not database.isInMemoryEngine(engine))
+        self._save_db_as_action.setEnabled(database.isFileEngine(engine))
 
     def engine(self) -> typing.Optional[sa.engine.Engine]:
         return self._engine
+
+    def save(self):
+        src_engine = self.engine()
+
+        if src_engine is None or src_engine.dialect.name != 'sqlite':
+            return
+
+        dst_engine = widgets.getSaveDatabaseFileEngine(self)
+
+        if dst_engine is None:
+            return
+
+        if os.path.samefile(src_engine.url.database, dst_engine.url.database):
+            return
+
+        src_conn = src_engine.raw_connection()
+        dst_conn = dst_engine.raw_connection()
+
+        src_conn.backup(dst_conn.connection)
+
+        self.setEngine(dst_engine)
 
     def retranslateUi(self):
         self.retranslateWindowTitle()
@@ -157,6 +192,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._connect_db_action.setText(self.tr('&Connect...'))
         self._connect_db_action.setStatusTip(self.tr('Connect to a database over network'))
+
+        self._save_db_as_action.setText(self.tr('&Save as...'))
+        self._save_db_as_action.setStatusTip(self.tr('Save open database to a file'))
 
         self._exit_action.setText(self.tr('&Exit'))
 

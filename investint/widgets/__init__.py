@@ -13,6 +13,6 @@ from investint.widgets.importing.selection_dialog  import ImportingSelectionDial
 from investint.widgets.importing.window            import ImportingWindow
 from investint.widgets.importing.fca               import ImportingFcaWindow
 from investint.widgets.importing.dfpitr            import ImportingDfpItrWindow
-from investint.widgets.database.file_dialog        import getOpenDatabaseFileEngine
+from investint.widgets.database.file_dialog        import getOpenDatabaseFileEngine, getSaveDatabaseFileEngine
 from investint.widgets.database.client_dialog      import DatabaseClientDialog
 from investint.widgets.main_window                 import MainWindow
