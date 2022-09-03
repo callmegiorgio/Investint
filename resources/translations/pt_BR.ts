@@ -420,49 +420,69 @@
 <context>
     <name>DatabaseClientDialog</name>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="197"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="210"/>
         <source>Driver</source>
         <translation>Driver</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="198"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="211"/>
         <source>Username</source>
         <translation>Usuário</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="199"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="212"/>
         <source>Password</source>
         <translation>Senha</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="200"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="213"/>
         <source>Host</source>
         <translation>Host</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="201"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="214"/>
         <source>Port</source>
         <translation>Porta</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="202"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="215"/>
         <source>Database</source>
         <translation>Banco de dados</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="203"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="216"/>
         <source>Confirm</source>
         <translation>Confirmar</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="194"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="207"/>
         <source>Database Connection</source>
         <translation>Conexão ao Banco de Dados</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/database/client_dialog.py" line="196"/>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="209"/>
         <source>Dialect</source>
         <translation>Dialeto</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="93"/>
+        <source>Create Database</source>
+        <translation>Criar Banco de Dados</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="93"/>
+        <source>Database &apos;{}&apos; does not exist. Do you want to create it?</source>
+        <translation>Banco de dados &apos;{}&apos; não existe. Você deseja criá-lo?</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="253"/>
+        <source>The driver &apos;{}&apos; wasn&apos;t found. Ensure the driver plugin is installed before running the application.</source>
+        <translation>O driver &apos;{}&apos; não foi encontrado. Certifique-se de que o plugin do driver está instalado antes de executar a aplicação.</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/database/client_dialog.py" line="263"/>
+        <source>Connection Error</source>
+        <translation>Erro de Conexão</translation>
     </message>
 </context>
 <context>
@@ -470,22 +490,22 @@
     <message>
         <location filename="../../investint/widgets/database/connection_dialog.py" line="21"/>
         <source>Create Database</source>
-        <translation>Criar Banco de Dados</translation>
+        <translation type="obsolete">Criar Banco de Dados</translation>
     </message>
     <message>
         <location filename="../../investint/widgets/database/connection_dialog.py" line="21"/>
         <source>Database &apos;{}&apos; does not exist. Do you want to create it?</source>
-        <translation>Banco de dados &apos;{}&apos; não existe. Você deseja criá-lo?</translation>
+        <translation type="obsolete">Banco de dados &apos;{}&apos; não existe. Você deseja criá-lo?</translation>
     </message>
     <message>
         <location filename="../../investint/widgets/database/connection_dialog.py" line="60"/>
         <source>Connection Error</source>
-        <translation>Erro de Conexão</translation>
+        <translation type="obsolete">Erro de Conexão</translation>
     </message>
     <message>
         <location filename="../../investint/widgets/database/connection_dialog.py" line="50"/>
         <source>The driver &apos;{}&apos; wasn&apos;t found. Ensure the driver plugin is installed before running the application.</source>
-        <translation>O driver &apos;{}&apos; não foi encontrado. Certifique-se de que o plugin do driver está instalado antes de executar a aplicação.</translation>
+        <translation type="obsolete">O driver &apos;{}&apos; não foi encontrado. Certifique-se de que o plugin do driver está instalado antes de executar a aplicação.</translation>
     </message>
 </context>
 <context>
@@ -493,23 +513,23 @@
     <message>
         <location filename="../../investint/widgets/database/file_dialog.py" line="52"/>
         <source>Open Database File</source>
-        <translation>Abrir Arquivo de Banco de Dados</translation>
+        <translation type="obsolete">Abrir Arquivo de Banco de Dados</translation>
     </message>
     <message>
         <location filename="../../investint/widgets/database/file_dialog.py" line="53"/>
         <source>SQLite database (*.sqlite3)</source>
-        <translation>Banco de dados SQLite (*.sqlite3)</translation>
+        <translation type="obsolete">Banco de dados SQLite (*.sqlite3)</translation>
     </message>
 </context>
 <context>
     <name>ImportingDfpItrWindow</name>
     <message>
-        <location filename="../../investint/widgets/importing/dfpitr.py" line="27"/>
+        <location filename="../../investint/widgets/importing/dfpitr.py" line="31"/>
         <source>Import DFP/ITR</source>
         <translation>Importar DFP/ITR</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/importing/dfpitr.py" line="28"/>
+        <location filename="../../investint/widgets/importing/dfpitr.py" line="32"/>
         <source>DFP/ITR File (*.zip)</source>
         <translation>Arquivo DFP/ITR (*.zip)</translation>
     </message>
@@ -517,12 +537,12 @@
 <context>
     <name>ImportingFcaWindow</name>
     <message>
-        <location filename="../../investint/widgets/importing/fca.py" line="23"/>
+        <location filename="../../investint/widgets/importing/fca.py" line="27"/>
         <source>Import FCA</source>
         <translation>Importar FCA</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/importing/fca.py" line="24"/>
+        <location filename="../../investint/widgets/importing/fca.py" line="28"/>
         <source>FCA File (*.zip)</source>
         <translation>Arquivo FCA (*.zip)</translation>
     </message>
@@ -553,47 +573,47 @@
 <context>
     <name>ImportingWindow</name>
     <message>
-        <location filename="../../investint/widgets/importing/window.py" line="147"/>
+        <location filename="../../investint/widgets/importing/window.py" line="151"/>
         <source>Any File (*)</source>
         <translation>Qualquer Arquivo (*)</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/importing/window.py" line="148"/>
+        <location filename="../../investint/widgets/importing/window.py" line="152"/>
         <source>Path to file...</source>
         <translation>Caminho para o arquivo...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/importing/window.py" line="152"/>
+        <location filename="../../investint/widgets/importing/window.py" line="156"/>
         <source>Stop</source>
         <translation>Parar</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/importing/window.py" line="152"/>
+        <location filename="../../investint/widgets/importing/window.py" line="156"/>
         <source>Import</source>
         <translation>Importar</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/importing/window.py" line="168"/>
+        <location filename="../../investint/widgets/importing/window.py" line="172"/>
         <source>Confirmation</source>
         <translation>Confirmação</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/importing/window.py" line="168"/>
+        <location filename="../../investint/widgets/importing/window.py" line="172"/>
         <source>A file is currently being imported. Stopping the importing process will result in all progress being lost. Do you want to stop it?</source>
         <translation>Um arquivo está sendo importado no momento. Parar o processo de importação resultará na perda de todo o progresso. Você quer parar?</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/importing/window.py" line="208"/>
+        <location filename="../../investint/widgets/importing/window.py" line="212"/>
         <source>Open File</source>
         <translation>Abrir Arquivo</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/importing/window.py" line="236"/>
+        <location filename="../../investint/widgets/importing/window.py" line="246"/>
         <source>Importing Completed</source>
         <translation>Importação Concluída</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/importing/window.py" line="236"/>
+        <location filename="../../investint/widgets/importing/window.py" line="246"/>
         <source>Importing completed with success.</source>
         <translation>A importação foi concluída com sucesso.</translation>
     </message>
@@ -601,64 +621,84 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="143"/>
+        <location filename="../../investint/widgets/main_window.py" line="190"/>
         <source>&amp;Open...</source>
         <translation>&amp;Abrir...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="144"/>
+        <location filename="../../investint/widgets/main_window.py" line="191"/>
         <source>Open a database from a file</source>
         <translation>Abrir um banco de dado de um arquivo</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="146"/>
+        <location filename="../../investint/widgets/main_window.py" line="193"/>
         <source>&amp;Connect...</source>
         <translation>&amp;Conectar...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="147"/>
+        <location filename="../../investint/widgets/main_window.py" line="194"/>
         <source>Connect to a database over network</source>
         <translation>Conectar a um banco de dados pela rede</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="176"/>
+        <location filename="../../investint/widgets/main_window.py" line="226"/>
         <source>In-Memory</source>
         <translation>Na memória</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="155"/>
+        <location filename="../../investint/widgets/main_window.py" line="205"/>
         <source>Companies from FCA...</source>
         <translation>Companhias do FCA...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="156"/>
+        <location filename="../../investint/widgets/main_window.py" line="206"/>
         <source>Statements from DFP/ITR...</source>
         <translation>Demonstrações do DFP/ITR...</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="141"/>
+        <location filename="../../investint/widgets/main_window.py" line="185"/>
         <source>&amp;File</source>
         <translation>&amp;Arquivo</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="154"/>
+        <location filename="../../investint/widgets/main_window.py" line="204"/>
         <source>&amp;Import</source>
         <translation>&amp;Importar</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="149"/>
+        <location filename="../../investint/widgets/main_window.py" line="199"/>
         <source>&amp;Exit</source>
         <translation>&amp;Sair</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="161"/>
+        <location filename="../../investint/widgets/main_window.py" line="211"/>
         <source>Help</source>
         <translation>Ajuda</translation>
     </message>
     <message>
-        <location filename="../../investint/widgets/main_window.py" line="162"/>
+        <location filename="../../investint/widgets/main_window.py" line="212"/>
         <source>About</source>
         <translation>Sobre</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/main_window.py" line="187"/>
+        <source>&amp;New</source>
+        <translation>&amp;Novo</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/main_window.py" line="188"/>
+        <source>Create a new database in memory</source>
+        <translation>Criar um novo banco de dados na memória</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/main_window.py" line="196"/>
+        <source>&amp;Save as...</source>
+        <translation>&amp;Salvar como...</translation>
+    </message>
+    <message>
+        <location filename="../../investint/widgets/main_window.py" line="197"/>
+        <source>Save open database to a file</source>
+        <translation>Salvar banco de dados aberto para um arquivo</translation>
     </message>
 </context>
 <context>
