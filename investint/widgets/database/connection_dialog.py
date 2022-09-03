@@ -34,8 +34,28 @@ class DatabaseConnectionDialog(QtWidgets.QDialog):
         try:
             url = self.url()
 
-            engine = sa.create_engine(url, echo=True, future=True)
-            engine.connect().close()
+            if url.get_dialect().name != 'sqlite':
+                # We have to remove the "database" from the given url in order
+                # to test the engine's connection only. Otherwise, SQLAlchemy
+                # will check for BOTH the connection and the database, and will
+                # raise the same exception `OperationalError` for both of them,
+                # which makes it impossible to know whether it was an error of
+                # connection or of invalid database.
+                #
+                # This only applies to networked databases, that is, everything
+                # except SQLite.
+
+                url_without_database = sa.engine.URL.create(
+                    drivername = url.drivername,
+                    username   = url.username,
+                    password   = url.password,
+                    host       = url.host,
+                    port       = url.port,
+                    database   = None
+                )
+
+                engine = sa.create_engine(url_without_database, echo=True, future=True)
+                engine.connect().close()
 
             if not sa_utils.database_exists(url):
                 if self.askForDatabaseCreation(url.database):
