@@ -3,7 +3,7 @@ import pyqt5_fugueicons as fugue
 import sqlalchemy       as sa
 import typing
 from PyQt5     import QtCore, QtWidgets
-from investint import models, widgets
+from investint import database, models, widgets
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -108,7 +108,7 @@ class MainWindow(QtWidgets.QMainWindow):
             dialog.setUrl(engine.url)
 
         if dialog.exec():
-            engine = sa.create_engine(dialog.url(), echo=True, future=True)
+            engine = database.createEngineFromUrl(dialog.url())
             self.setEngine(engine)
 
     def showAbout(self):
@@ -123,9 +123,9 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
     def setEngine(self, engine: sa.engine.Engine):
-        models.metadata.create_all(engine)
-        models.Session.remove()
-        models.Session.configure(bind=engine)
+        database.metadata.create_all(engine)
+        database.Session.remove()
+        database.Session.configure(bind=engine)
 
         self._engine = engine
         self._company_widget.refresh()

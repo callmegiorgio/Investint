@@ -6,7 +6,7 @@ import cvm
 import sqlalchemy     as sa
 import sqlalchemy.orm as sa_orm
 from cvm       import datatypes
-from investint import models
+from investint import database, models
 
 def _enumByValue(enum_type: typing.Type[cvm.datatypes.enums.DescriptiveIntEnum]):
     return [str(e.value) for e in enum_type]
@@ -56,7 +56,7 @@ class PublicCompany(models.Base):
     @staticmethod
     def findByCNPJ(cnpj: str, session = None) -> typing.Optional[PublicCompany]:
         if session is None:
-            session = models.get_session()
+            session = database.Session()
 
         return session.query(PublicCompany).filter(PublicCompany.cnpj == cnpj).one_or_none()
 
@@ -75,7 +75,7 @@ class PublicCompany(models.Base):
                )
         )
 
-        session = models.get_session()
+        session = database.Session()
         results = session.execute(stmt).all()
 
         return [row[0] for row in results]
@@ -171,7 +171,7 @@ class Document(models.Base):
               .where(S.balance_type   == balance_type)
         )
 
-        session = models.get_session()
+        session = database.Session()
         result  = session.execute(select_stmt.distinct()).all()
 
         return list(row[0] for row in result)
@@ -235,7 +235,7 @@ class Statement(models.Base):
 
         return stmts
 
-@models.mapper_registry.mapped
+@database.mapper_registry.mapped
 @dataclasses.dataclass
 class IncomeStatement(cvm.balances.IncomeStatement):
     __table__ = sa.Table(
@@ -268,7 +268,7 @@ class IncomeStatement(cvm.balances.IncomeStatement):
         }
     }
 
-@models.mapper_registry.mapped
+@database.mapper_registry.mapped
 @dataclasses.dataclass
 class BalanceSheet(cvm.balances.BalanceSheet):
     __table__ = sa.Table(

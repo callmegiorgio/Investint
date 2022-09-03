@@ -5,7 +5,7 @@ import sqlalchemy     as sa
 import sqlalchemy.orm as sa_orm
 import typing
 from PyQt5     import QtCore
-from investint import models
+from investint import database, models
 
 class CompanyIndicatorModel(models.MappedBreakdownTableModel):
     def __init__(self, mapped_row_names: typing.Dict[str, str], parent: typing.Optional[QtCore.QObject] = None) -> None:
@@ -34,7 +34,7 @@ class CompanyIndicatorModel(models.MappedBreakdownTableModel):
               .where(D.type       == document_type)
         )
 
-        session = models.get_session()
+        session = database.Session()
         result  = session.execute(select_stmt)
 
         self.clear()

@@ -2,7 +2,8 @@ import sqlalchemy       as sa
 import sqlalchemy_utils as sa_utils
 import traceback
 import typing
-from PyQt5 import QtCore, QtWidgets
+from PyQt5     import QtCore, QtWidgets
+from investint import database
 
 class DatabaseClientDialog(QtWidgets.QDialog):
     @staticmethod
@@ -236,7 +237,7 @@ class DatabaseClientDialog(QtWidgets.QDialog):
                 database   = None
             )
 
-            engine = sa.create_engine(url_without_database, echo=True, future=True)
+            engine = database.createEngineFromUrl(url_without_database)
             engine.connect().close()
 
             if not sa_utils.database_exists(url):

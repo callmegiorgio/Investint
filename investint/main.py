@@ -1,29 +1,20 @@
 import os
-import sqlalchemy      as sa
-import sqlalchemy.exc  as sa_exc
-import sqlalchemy.pool as sa_pool
+import sqlalchemy.exc as sa_exc
 import sys
 from PyQt5     import QtCore, QtWidgets
-from investint import resources, widgets
-
-def createInMemoryEngine():
-    return sa.create_engine(
-        'sqlite://',
-        echo=True,
-        future=True,
-        connect_args={'check_same_thread': False}, 
-        poolclass=sa_pool.StaticPool
-    )
+from investint import database, resources, widgets
 
 def createFileEngine(file_path: str):
+    # TODO: since abs_path is only for printing purposes on window title,
+    #       move it to MainWindow, duh.
     abs_path = os.path.abspath(file_path)
 
     try:
-        engine = sa.create_engine(f'sqlite:///{abs_path}', echo=True, future=True)
-        engine.connect().close() # test engine is valid
+        engine = database.createEngineFromFile(abs_path)
+        engine.connect().close()
     except sa_exc.SQLAlchemyError as exc:
         print(exc.__class__.__name__, ': ', exc, sep='')
-        engine = createInMemoryEngine()
+        engine = database.createEngineInMemory()
     finally:
         return engine
 
@@ -31,7 +22,7 @@ def createEngine():
     if len(sys.argv) > 1:
         return createFileEngine(sys.argv[1])
     else:
-        return createInMemoryEngine()
+        return database.createEngineInMemory()
 
 def createTranslator(app: QtWidgets.QApplication) -> QtCore.QTranslator:
     translator = QtCore.QTranslator(app)

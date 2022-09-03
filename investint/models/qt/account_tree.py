@@ -8,7 +8,7 @@ import sqlalchemy.orm as sa_orm
 import typing
 from PyQt5        import QtCore
 from PyQt5.QtCore import Qt
-from investint    import models
+from investint    import database, models
 
 class AccountTreeItem:
     __slots__ = (
@@ -144,7 +144,7 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
               .where(S.balance_type   == balance_type)
         )
 
-        session = models.get_session()
+        session = database.Session()
         results = session.execute(stmt).all()
 
         accounts   = {}

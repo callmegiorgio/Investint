@@ -5,7 +5,7 @@ import enum
 import typing
 import sqlalchemy as sa
 from PyQt5     import QtCore
-from investint import models
+from investint import database, models
 
 class CompanyStatementPeriod(enum.IntEnum):
     Annual    = 0
@@ -37,7 +37,7 @@ class CompanyStatementModel(models.MappedBreakdownTableModel):
     ):
         self.clear()
 
-        session = models.get_session()
+        session = database.Session()
         Period  = CompanyStatementPeriod
 
         if period == Period.Annual:

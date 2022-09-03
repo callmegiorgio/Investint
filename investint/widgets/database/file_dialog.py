@@ -1,6 +1,7 @@
 import sqlalchemy as sa
 import typing
-from PyQt5 import QtWidgets
+from PyQt5     import QtWidgets
+from investint import database
 
 def getOpenDatabaseFileEngine(parent: typing.Optional[QtWidgets.QWidget] = None) -> typing.Optional[sa.engine.Engine]:
     dialog = QtWidgets.QFileDialog(parent)
@@ -19,7 +20,4 @@ def getOpenDatabaseFileEngine(parent: typing.Optional[QtWidgets.QWidget] = None)
     except IndexError:
         return None
 
-    url    = sa.engine.URL('sqlite', database=file_name)
-    engine = sa.engine.create_engine(url, echo=True, future=True)
-
-    return engine
+    return database.createEngineFromFile(file_name)

@@ -1,4 +1,4 @@
-from investint import importing, models
+from investint import database, importing, models
 
 class SqlWorker(importing.Worker):
     """Implements a `Worker` for database operations on a worker thread.
@@ -28,7 +28,7 @@ class SqlWorker(importing.Worker):
         """
 
         if self._session is None:
-            self._session = models.get_session()
+            self._session = database.Session()
 
         return self._session
 
