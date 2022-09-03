@@ -27,6 +27,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self._initHelpMenuActions()
 
     def _initFileMenuActions(self):
+        self._new_db_file_action = QtWidgets.QAction()
+        self._new_db_file_action.setIcon(fugue.icon('database--plus'))
+        self._new_db_file_action.setShortcut('Ctrl+N')
+        self._new_db_file_action.triggered.connect(lambda: self.setEngine(database.createEngineInMemory()))
+
         self._open_db_file_action = QtWidgets.QAction()
         self._open_db_file_action.setIcon(fugue.icon('database'))
         self._open_db_file_action.setShortcut('Ctrl+O')
@@ -73,6 +78,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._import_menu.addAction(self._import_dfpitr_action)
 
         self._file_menu = QtWidgets.QMenu()
+        self._file_menu.addAction(self._new_db_file_action)
         self._file_menu.addAction(self._open_db_file_action)
         self._file_menu.addAction(self._connect_db_action)
         self._file_menu.addSeparator()
@@ -142,6 +148,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Menu: File
         #===========================================================
         self._file_menu.setTitle(self.tr('&File'))
+
+        self._new_db_file_action.setText(self.tr('&New'))
+        self._new_db_file_action.setToolTip(self.tr('Create a new database in memory'))
 
         self._open_db_file_action.setText(self.tr('&Open...'))
         self._open_db_file_action.setStatusTip(self.tr('Open a database from a file'))
