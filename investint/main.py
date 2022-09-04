@@ -22,7 +22,7 @@ def createEngine():
 
 def createTranslator(app: QtWidgets.QApplication) -> QtCore.QTranslator:
     translator = QtCore.QTranslator(app)
-    translator.load(QtCore.QLocale(), ':/translations/')
+    translator.load(QtCore.QLocale(), 'translations/')
     return translator
 
 def main():
