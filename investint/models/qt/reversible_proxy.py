@@ -1,6 +1,10 @@
 import typing
 from PyQt5 import QtCore
 
+__all__ = [
+    'ReversibleProxyModel'
+]
+
 class ReversibleProxyModel(QtCore.QIdentityProxyModel):
     """Implements a proxy model that reverses a source model.
     

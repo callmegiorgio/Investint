@@ -2,6 +2,10 @@ import typing
 from PyQt5     import QtCore
 from investint import models
 
+__all__ = [
+    'MappedBreakdownTableModel'
+]
+
 class MappedBreakdownTableModel(models.BreakdownTableModel):
     """Maps row names to strings.
     

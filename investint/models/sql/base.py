@@ -1,3 +1,7 @@
-from investint import database as _database
+from investint import database
 
-Base = _database.mapper_registry.generate_base()
+__all__ = [
+    'Base'
+]
+
+Base = database.mapper_registry.generate_base()

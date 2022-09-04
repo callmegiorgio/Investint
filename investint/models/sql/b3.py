@@ -3,6 +3,12 @@ import sqlalchemy.orm as sa_orm
 import b3
 from investint import models
 
+__all__ = [
+    'ListedCompany',
+    'Instrument',
+    'Quote'
+]
+
 class ListedCompany(models.PublicCompany):
     __tablename__ = 'listed_company'
 

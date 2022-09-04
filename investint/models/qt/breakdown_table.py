@@ -1,6 +1,10 @@
 import typing
 from PyQt5 import QtCore
 
+__all__ = [
+    'BreakdownTableModel'
+]
+
 class BreakdownTableModel(QtCore.QAbstractTableModel):
     """Implements a `QAbstractTableModel` for showing numerical data.
 

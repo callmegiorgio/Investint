@@ -5,6 +5,10 @@ import typing
 from PyQt5     import QtCore
 from investint import models
 
+__all__ = [
+    'CompanyBalanceSheetModel'
+]
+
 class CompanyBalanceSheetModel(models.CompanyStatementModel):
     ################################################################################
     # Initialization
@@ -29,6 +33,7 @@ class CompanyBalanceSheetModel(models.CompanyStatementModel):
         ]
 
         super().__init__(mapped_row_names, parent)
+
         self.retranslateUi()
 
     ################################################################################

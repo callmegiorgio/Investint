@@ -7,6 +7,10 @@ import typing
 from PyQt5     import QtCore
 from investint import database, models
 
+__all__ = [
+    'CompanyIndicatorModel'
+]
+
 class CompanyIndicatorModel(models.MappedBreakdownTableModel):
     def __init__(self, mapped_row_names: typing.Dict[str, str], parent: typing.Optional[QtCore.QObject] = None) -> None:
         super().__init__(mapped_row_names, parent)

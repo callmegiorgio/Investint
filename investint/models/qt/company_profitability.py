@@ -4,6 +4,10 @@ import typing
 from PyQt5     import QtCore
 from investint import models
 
+__all__ = [
+    'CompanyProfitabilityModel'
+]
+
 class CompanyProfitabilityModel(models.CompanyIndicatorModel):
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
         mapped_row_names = [

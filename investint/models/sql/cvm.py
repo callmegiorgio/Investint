@@ -14,6 +14,15 @@ def _enumByValue(enum_type: typing.Type[cvm.datatypes.enums.DescriptiveIntEnum])
 def _enumByDescription(enum_type: typing.Type[cvm.datatypes.enums.DescriptiveIntEnum]):
     return [e.description for e in enum_type]
 
+__all__ = [
+    'PublicCompany',
+    'Document',
+    'Statement',
+    'Account',
+    'IncomeStatement',
+    'BalanceSheet'
+]
+
 class PublicCompany(models.Base):
     __tablename__ = 'public_company'
 

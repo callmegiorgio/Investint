@@ -7,6 +7,11 @@ import sqlalchemy as sa
 from PyQt5     import QtCore
 from investint import database, models
 
+__all__ = [
+    'CompanyStatementModel',
+    'CompanyStatementPeriod'
+]
+
 class CompanyStatementPeriod(enum.IntEnum):
     Annual    = 0
     Quarterly = 1
