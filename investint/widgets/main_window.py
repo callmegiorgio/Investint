@@ -4,7 +4,7 @@ import pyqt5_fugueicons as fugue
 import sqlalchemy       as sa
 import typing
 from PyQt5     import QtCore, QtWidgets
-from investint import database, widgets
+from investint import database, widgets, _version
 
 __all__ = [
     'MainWindow'
@@ -133,14 +133,23 @@ class MainWindow(QtWidgets.QMainWindow):
             self.setEngine(engine)
 
     def showAbout(self):
-        about = (
-            'version: {}'
-        )
+        versions = _version.get_versions()
+
+        kv_version = {
+            'version':         'Version',
+            'full-revisionid': 'Full Revision Id',
+            'date':            'Date'
+        }
+
+        about = []
+
+        for k, name in kv_version.items():
+            about.append(f'{name}: {versions[k]}')
 
         QtWidgets.QMessageBox.information(
             self,
             'Investint',
-            about.format('0.1.0')
+            '\n'.join(about)
         )
 
     def setEngine(self, engine: sa.engine.Engine):
