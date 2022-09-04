@@ -213,6 +213,8 @@ class Statement(models.Base):
         bpp = collection.bpp
         dre = collection.dre
         dra = collection.dra
+        dfc = collection.dfc
+        dva = collection.dva
         
         stmts = []
 
@@ -234,13 +236,27 @@ class Statement(models.Base):
         stmt.period_end_date   = dre.period_end_date
         stmts.append(stmt)
 
-        stmt = makeStatement(dra.accounts)
-        stmt.statement_type    = cvm.datatypes.StatementType.DRA
-        stmt.period_start_date = dra.period_start_date
-        stmt.period_end_date   = dra.period_end_date
+        if dra is not None:
+            stmt = makeStatement(dra.accounts)
+            stmt.statement_type    = cvm.datatypes.StatementType.DRA
+            stmt.period_start_date = dra.period_start_date
+            stmt.period_end_date   = dra.period_end_date
+            stmts.append(stmt)
+
+        stmt = makeStatement(dfc.accounts)
+        stmt.statement_type    = cvm.datatypes.StatementType.DFC
+        stmt.period_start_date = dfc.period_start_date
+        stmt.period_end_date   = dfc.period_end_date
         stmts.append(stmt)
 
-        # TODO: other statement types
+        # TODO: DMPL
+
+        if dva is not None:
+            stmt = makeStatement(dva.accounts)
+            stmt.statement_type    = cvm.datatypes.StatementType.DVA
+            stmt.period_start_date = dva.period_start_date
+            stmt.period_end_date   = dva.period_end_date
+            stmts.append(stmt)
 
         return stmts
 
