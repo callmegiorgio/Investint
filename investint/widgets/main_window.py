@@ -153,7 +153,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.retranslateWindowTitle()
 
         self._new_db_file_action.setEnabled(not database.isInMemoryEngine(engine))
-        self._save_db_as_action.setEnabled(database.isFileEngine(engine))
+        self._save_db_as_action.setEnabled(database.isSqliteEngine(engine))
 
     def engine(self) -> typing.Optional[sa.engine.Engine]:
         return self._engine
@@ -161,7 +161,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def save(self):
         src_engine = self.engine()
 
-        if src_engine is None or src_engine.dialect.name != 'sqlite':
+        if src_engine is None or not database.isSqliteEngine(src_engine):
             return
 
         dst_engine = widgets.getSaveDatabaseFileEngine(self)
@@ -227,13 +227,13 @@ class MainWindow(QtWidgets.QMainWindow):
         if engine is None:
             pass
 
-        elif engine.dialect.name == 'sqlite':
-            database = engine.url.database
+        elif database.isInMemoryEngine(engine):
+            window_title_words.append(self.tr('In-Memory'))
 
-            if database is None:
-                window_title_words.append(self.tr('In-Memory'))
-            else:
-                window_title_words.append(os.path.normpath(os.path.abspath(database)))
+        elif database.isFileEngine(engine):
+            file_name = engine.url.database
+            window_title_words.append(os.path.normpath(os.path.abspath(file_name)))
+            
         else:
             url = engine.url
             window_title_words.append(url.render_as_string(hide_password=True))
