@@ -1,6 +1,10 @@
 import typing
 from PyQt5 import QtCore, QtWidgets
 
+__all__ = [
+    'YearRangeWidget'
+]
+
 class YearRangeWidget(QtWidgets.QFrame):
     valueChanged = QtCore.pyqtSignal(int, int)
 

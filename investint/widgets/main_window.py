@@ -4,7 +4,11 @@ import pyqt5_fugueicons as fugue
 import sqlalchemy       as sa
 import typing
 from PyQt5     import QtCore, QtWidgets
-from investint import database, models, widgets
+from investint import database, widgets
+
+__all__ = [
+    'MainWindow'
+]
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):

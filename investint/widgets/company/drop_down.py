@@ -3,6 +3,10 @@ import typing
 from PyQt5     import QtCore, QtGui, QtWidgets
 from investint import models
 
+__all__ = [
+    'CompanyDropDown'
+]
+
 class CompanyDropDown(QtWidgets.QWidget):
     companyChanged = QtCore.pyqtSignal(models.PublicCompany)
 

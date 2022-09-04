@@ -2,6 +2,10 @@ import typing
 from PyQt5     import QtCore, QtWidgets
 from investint import importing, widgets
 
+__all__ = [
+    'ImportingFcaWindow'
+]
+
 class ImportingFcaWindow(widgets.ImportingWindow):
     @staticmethod
     def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:

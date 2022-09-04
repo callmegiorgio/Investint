@@ -3,6 +3,10 @@ import typing
 from PyQt5     import QtCore, QtWidgets
 from investint import widgets, models
 
+__all__ = [
+    'CompanyCvmStatementWidget'
+]
+
 class CompanyCvmStatementWidget(QtWidgets.QWidget):
     ################################################################################
     # Initialization

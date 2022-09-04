@@ -5,6 +5,10 @@ import typing
 from PyQt5     import QtCore, QtWidgets
 from investint import database
 
+__all__ = [
+    'DatabaseClientDialog'
+]
+
 class DatabaseClientDialog(QtWidgets.QDialog):
     @staticmethod
     def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:

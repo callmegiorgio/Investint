@@ -2,6 +2,10 @@ import typing
 from PyQt5     import QtCore, QtWidgets
 from investint import models
 
+__all__ = [
+    'AccountTreeWidget'
+]
+
 class AccountTreeWidget(QtWidgets.QWidget):
     ################################################################################
     # Initialization

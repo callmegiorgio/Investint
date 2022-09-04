@@ -3,6 +3,10 @@ from PyQt5     import QtCore, QtWidgets
 from investint import widgets, models
 import cvm
 
+__all__ = [
+    'CompanyGeneralInformationWidget'
+]
+
 class CompanyGeneralInformationWidget(QtWidgets.QWidget):
     ################################################################################
     # Initialization

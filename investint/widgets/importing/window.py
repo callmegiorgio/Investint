@@ -3,6 +3,10 @@ import pyqt5_fugueicons as fugue
 from PyQt5     import QtCore, QtGui, QtWidgets
 from investint import importing
 
+__all__ = [
+    'ImportingWindow'
+]
+
 class ImportingWindow(QtWidgets.QWidget):
     """Allows importing with `importing.Worker`.
     

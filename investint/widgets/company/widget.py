@@ -2,6 +2,10 @@ import typing
 from PyQt5     import QtCore, QtWidgets
 from investint import widgets, models
 
+__all__ = [
+    'CompanyWidget'
+]
+
 class CompanyWidget(QtWidgets.QWidget):
     """Shows information of a company.
 

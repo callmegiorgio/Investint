@@ -1,6 +1,10 @@
 import typing
 from PyQt5 import QtCore, QtWidgets
 
+__all__ = [
+    'DoubleLabel'
+]
+
 class DoubleLabel(QtWidgets.QWidget):
     ################################################################################
     # Initialization
