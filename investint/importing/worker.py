@@ -4,7 +4,39 @@ import traceback
 import typing
 from PyQt5 import QtCore
 
+__all__ = [
+    'WorkerSignals',
+    'Worker'
+]
+
 class WorkerSignals(QtCore.QObject):
+    """Groups signals emitted by `Worker`.
+    
+    This class defines the signals emitted by a `Worker`
+    such that another thread may be notified of changes
+    occurring while processing a file, as well as when
+    a worker is done processing.
+
+    The signal `error` is emitted if any exception is raised
+    while reading, parsing, or importing data. It has three
+    arguments in which information about a raised exception
+    is passed, namely, that exception's type, value, and
+    description, which includes a traceback. The worker stops
+    immediately after this signal is emitted. Note that the
+    signal `finished` is **not** emitted in this case.
+
+    The signal `message` notifies progress changes, warning,
+    or general information while reading a file. It is emitted
+    by `Worker.emitMessage()`.
+
+    The signal `finished` is emitted immediately before
+    `Worker.run()` returns to indicate that a worker is
+    done processing without an error. This signal has one
+    argument, `completed`, which is True if a worker stopped
+    because it processed all data in the file, or False if it
+    stopped as a result of `Worker.stop()` being called.
+    """
+
     error    = QtCore.pyqtSignal(type, Exception, str)
     messaged = QtCore.pyqtSignal(str)
     finished = QtCore.pyqtSignal(bool)
@@ -19,6 +51,8 @@ class Worker(QtCore.QRunnable):
     
     Subclasses may implement the methods `open()`, `reader()`, `readOne()`,
     and `finish()`, all of which are invoked by a reimplementation of `run()`.
+    None of these functions should be called from within `run()`, whether in
+    the thread in which `run()` is being run or let alone in another thread.
 
     The implementation of `run()` calls `Worker.open()` to open a file-like
     object, which is then passed to `reader()` to create an iterable reader
@@ -82,16 +116,24 @@ class Worker(QtCore.QRunnable):
         return True
 
     def stop(self):
-        """Stops the file-reading process, if any."""
+        """Stops the file-reading process, if any.
+        
+        This function is thread-safe.
+        """
 
         self._stop_ev.set()
 
     def signals(self) -> WorkerSignals:
-        """Returns an object that contains the signals emitted by this instance."""
+        """Returns an object that contains the signals emitted by this instance.
+        
+        This function is thread-safe.
+        """
 
         return self._signals
 
     def emitMessage(self, message: str):
+        """This function is thread-safe."""
+
         self.signals().messaged.emit(message)
 
     ################################################################################

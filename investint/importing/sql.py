@@ -1,4 +1,8 @@
-from investint import database, importing, models
+from investint import database, importing
+
+__all__ = [
+    'SqlWorker'
+]
 
 class SqlWorker(importing.Worker):
     """Implements a `Worker` for database operations on a worker thread.

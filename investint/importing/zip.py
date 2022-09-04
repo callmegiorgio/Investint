@@ -1,6 +1,10 @@
 import zipfile
 from investint import importing
 
+__all__ = [
+    'ZipWorker'
+]
+
 class ZipWorker(importing.Worker):
     """Implements a `Worker` that reads Zip files."""
 

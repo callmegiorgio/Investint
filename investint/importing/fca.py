@@ -1,7 +1,10 @@
 import cvm
 import typing
-import zipfile
 from investint import importing, models
+
+__all__ = [
+    'FcaWorker'
+]
 
 class FcaWorker(importing.ZipWorker, importing.SqlWorker):
     """Implements a `Worker` that reads FCA files."""

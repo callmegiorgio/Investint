@@ -2,9 +2,32 @@ import cvm
 import typing
 from investint import importing, models
 
-class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
-    """Implements a `Worker` that imports data from DFP/ITR files."""
+__all__ = [
+    'DfpItrWorker'
+]
 
+class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
+    """Implements a `Worker` that imports data from DFP/ITR files.
+    
+    The constructor of this class takes a file path and an iterable
+    of CNPJ strings. The file path specifies the file to be opened,
+    whereas the CNPJ iterable is used to filter which companies
+    to import.
+    
+    Upon execution of `run()`, the file path is opened as a Zip
+    file and a DFP/ITR reader is created to iterate through all
+    DFP/ITR documents in that file, as follows. If this class
+    received one or more CNPJs upon construction, import only
+    companies whose CNPJ matches the given CNPJs. Otherwise,
+    import all companies.
+
+    Note that CNPJs are expected to be digit-only strings without
+    leading zeroes. For example, "191" rather than "00000000000191".
+    """
+
+    ################################################################################
+    # Initialization
+    ################################################################################
     def __init__(self, listed_cnpjs: typing.Iterable[str], filepath: str) -> None:
         super().__init__(filepath=filepath)
 
@@ -41,6 +64,9 @@ class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
 
         self._updateListedCnpjs(cnpj)
 
+    ################################################################################
+    # Public methods
+    ################################################################################
     def importDocument(self, dfpitr: cvm.datatypes.DFPITR):
         """First, creates the following ORM-mapped objects:
         - `models.Document` from `dfpitr`;
@@ -87,6 +113,9 @@ class DfpItrWorker(importing.ZipWorker, importing.SqlWorker):
 
         self.merge(doc)
 
+    ################################################################################
+    # Private methods
+    ################################################################################
     def _updateListedCnpjs(self, cnpj: str):
         if not self._is_filtering:
             return
