@@ -129,10 +129,10 @@ class ImportingWindow(QtWidgets.QWidget):
         self._worker.signals().finished.connect(self._onWorkerFinished)
 
         self.clearOutput()
+        self._is_importing = True
         self._toggleInput(False)
 
         self._thread_pool.start(self._worker)
-        self._is_importing = True
 
         self.importingStarted.emit()
 
