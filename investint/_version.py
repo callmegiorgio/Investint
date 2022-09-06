@@ -44,7 +44,7 @@ def get_config():
     cfg = VersioneerConfig()
     cfg.VCS = "git"
     cfg.style = "pep440"
-    cfg.tag_prefix = "v"
+    cfg.tag_prefix = ""
     cfg.parentdir_prefix = "investint-"
     cfg.versionfile_source = "investint/_version.py"
     cfg.verbose = False
