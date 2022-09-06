@@ -16,5 +16,10 @@ The pain point or challenge experienced by the user that the feature solves for.
 ### Benefit
 The benefit or value provided to the user.
 
+### Acceptance criteria
+- This is something that can be verified to show that this feature is satisfied
+- Another verifiable condition
+- ...
+
 ### Additional context
 Add any other context or screenshots about the feature request here.
