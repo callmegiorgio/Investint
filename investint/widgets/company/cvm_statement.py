@@ -35,12 +35,9 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         for t in cvm.datatypes.StatementType:
             self._stmt_type_combo.addItem(t.description, t)
 
-        self._balance_type_lbl   = QtWidgets.QLabel()
-        self._balance_type_combo = QtWidgets.QComboBox()
-        self._balance_type_combo.currentIndexChanged.connect(self._onBalanceTypeComboIndexChanged)
-
-        for t in cvm.datatypes.BalanceType:
-            self._balance_type_combo.addItem(t.name, t)
+        self._balance_type_lbl    = QtWidgets.QLabel()
+        self._balance_type_widget = widgets.BalanceTypeWidget()
+        self._balance_type_widget.balanceTypeChanged.connect(self._onBalanceTypeChanged)
 
         self._reference_date_lbl   = QtWidgets.QLabel()
         self._reference_date_combo = QtWidgets.QComboBox()
@@ -55,7 +52,7 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         filter_layout.addWidget(self._stmt_type_lbl,        0, 1)
         filter_layout.addWidget(self._stmt_type_combo,      1, 1)
         filter_layout.addWidget(self._balance_type_lbl,     0, 2)
-        filter_layout.addWidget(self._balance_type_combo,   1, 2)
+        filter_layout.addWidget(self._balance_type_widget,  1, 2)
         filter_layout.addWidget(self._reference_date_lbl,   0, 3)
         filter_layout.addWidget(self._reference_date_combo, 1, 3)
         filter_layout.setVerticalSpacing(2)
@@ -76,7 +73,7 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         return self._stmt_type_combo.currentData()
 
     def balanceType(self) -> cvm.datatypes.BalanceType:
-        return self._balance_type_combo.currentData()
+        return self._balance_type_widget.balanceType()
 
     def referenceDate(self) -> int:
         return self._reference_date_combo.currentData()
@@ -132,7 +129,7 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         self.applyFilter()
 
     @QtCore.pyqtSlot()
-    def _onBalanceTypeComboIndexChanged(self):
+    def _onBalanceTypeChanged(self):
         self._resetReferenceDateCombo()
         self.applyFilter()
 
