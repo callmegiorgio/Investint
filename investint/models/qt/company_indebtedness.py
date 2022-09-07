@@ -41,9 +41,3 @@ class CompanyIndebtednessModel(models.CompanyIndicatorModel):
     ################################################################################
     def createIndicator(self, balance_sheet: cvm.balances.BalanceSheet, income_statement: cvm.balances.IncomeStatement) -> typing.Any:
         return icvm.Indebtedness.from_statement(balance_sheet, income_statement)
-
-    def event(self, event: QtCore.QEvent) -> bool:
-        if event.type() == QtCore.QEvent.Type.LanguageChange:
-            self.retranslateUi()
-
-        return super().event(event)

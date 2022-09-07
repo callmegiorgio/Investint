@@ -100,6 +100,11 @@ class CompanyStatementWidget(QtWidgets.QWidget):
         self._toggle_ha_button.setText(self.tr('Toggle HA'))
         self._toggle_hr_button.setText(self.tr('Toggle HR'))
 
+        model = self.model()
+
+        if model is not None:
+            model.retranslateUi()
+
     ################################################################################
     # Overriden methods
     ################################################################################

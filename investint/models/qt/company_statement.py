@@ -89,6 +89,9 @@ class CompanyStatementModel(models.MappedBreakdownTableModel):
     def period(self) -> CompanyStatementPeriod:
         return self._period
 
+    def retranslateUi(self):
+        pass
+
     def _appendSqlResult(self, result: sa.engine.Result):
         for row in result.all():
             try:
