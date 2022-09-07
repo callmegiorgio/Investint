@@ -107,12 +107,19 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
         Code = 0
         Name = 1
 
+    @staticmethod
+    def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:
+        return QtCore.QCoreApplication.translate('AccountTreeModel', source_text, disambiguation, n)
+
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None):
         super().__init__(parent=parent)
 
         self._root_item = AccountTreeItem('', '')
         self._account_items = {}
         self._period_dates = []
+        self._header_texts = ['', '']
+
+        self.retranslateUi()
 
     def clear(self):
         if not self.hasChildren():
@@ -228,11 +235,18 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
 
         self.endResetModel()
 
+    def setHeaderText(self, column: int, text: str) -> None:
+        Column = AccountTreeModel.Column
+
+        if column < len(Column):
+            self._header_texts[column] = text
+            self.headerDataChanged.emit(Qt.Orientation.Horizontal, column, column)
+
     def headerText(self, column: int) -> str:
         Column = AccountTreeModel.Column
 
         if column < len(Column):
-            return Column(column).name
+            return self._header_texts[column]
         else:
             return str(self._period_dates[column - len(Column)])
 
@@ -276,6 +290,15 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
             return Qt.AlignmentFlag.AlignLeft
         else:
             return Qt.AlignmentFlag.AlignRight
+
+    def retranslateUi(self) -> None:
+        header_texts = (
+            AccountTreeModel.tr('Code'),
+            AccountTreeModel.tr('Name')
+        )
+
+        for column, text in enumerate(header_texts):
+            self.setHeaderText(column, text)
 
     ################################################################################
     # Overriden methods
@@ -323,6 +346,17 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
             return self.headerTextAlignment(section)
         else:
             return None
+
+    def setHeaderData(self, section: int, orientation: Qt.Orientation, value: typing.Any, role: int = Qt.ItemDataRole.DisplayRole) -> bool:
+        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
+            Column = AccountTreeModel.Column
+
+            if section < len(Column):
+                self._header_texts[section] = str(value)
+                self.headerDataChanged.emit(orientation, section, section)
+                return True
+        
+        return False
 
     def rowCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> int:
         if not parent.isValid():

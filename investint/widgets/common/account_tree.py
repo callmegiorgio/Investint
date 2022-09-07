@@ -36,6 +36,18 @@ class AccountTreeWidget(QtWidgets.QWidget):
     def model(self) -> models.AccountTreeModel:
         return self._view.model()
 
+    def retranslateUi(self) -> None:
+        self.model().retranslateUi()
+
+    ################################################################################
+    # Overriden methods
+    ################################################################################
+    def changeEvent(self, event: QtCore.QEvent) -> None:
+        if event.type() == QtCore.QEvent.Type.LanguageChange:
+            self.retranslateUi()
+
+        super().changeEvent(event)
+
     ################################################################################
     # Private slots
     ################################################################################
