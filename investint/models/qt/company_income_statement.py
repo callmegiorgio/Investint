@@ -71,9 +71,3 @@ class CompanyIncomeStatementModel(models.CompanyStatementModel):
               .where(D.type == document_type)
               .order_by(D.reference_date.asc())
         )
-    
-    def event(self, event: QtCore.QEvent) -> bool:
-        if event.type() == QtCore.QEvent.Type.LanguageChange:
-            self.retranslateUi()
-
-        return super().event(event)

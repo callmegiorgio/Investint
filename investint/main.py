@@ -20,15 +20,9 @@ def createEngine():
     else:
         return database.createEngineInMemory()
 
-def createTranslator(app: QtWidgets.QApplication) -> QtCore.QTranslator:
-    translator = QtCore.QTranslator(app)
-    translator.load(QtCore.QLocale(), 'translations/')
-    return translator
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
-    app.installTranslator(createTranslator(app))
-
     win = widgets.MainWindow()
     win.setMinimumSize(QtCore.QSize(800, 600))
     win.setEngine(createEngine())

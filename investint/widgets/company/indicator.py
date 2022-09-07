@@ -83,6 +83,9 @@ class CompanyIndicatorWidget(QtWidgets.QWidget):
 
     def retranslateUi(self):
         self._period_lbl.setText(self.tr('Period'))
+        self._indebtedness_model.retranslateUi()
+        self._efficiency_model.retranslateUi()
+        self._profitability_model.retranslateUi()
 
     ################################################################################
     # Overriden methods

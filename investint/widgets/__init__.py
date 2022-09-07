@@ -8,6 +8,7 @@ shows all other widgets in this package.
 from investint.widgets.common.year_range           import *
 from investint.widgets.common.account_tree         import *
 from investint.widgets.common.double_label         import *
+from investint.widgets.common.balance_type         import *
 from investint.widgets.company.drop_down           import *
 from investint.widgets.company.general_information import *
 from investint.widgets.company.cvm_statement       import *

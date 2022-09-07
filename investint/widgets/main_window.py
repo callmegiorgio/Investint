@@ -16,6 +16,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._engine: typing.Optional[sa.engine.Engine] = None
 
+        self._initTranslators()
         self._initWidgets()
         self._initActions()
         self._initMenus()
@@ -23,6 +24,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.statusBar()
 
         self.retranslateUi()
+
+    def _initTranslators(self):
+        app = QtWidgets.QApplication.instance()
+
+        # TODO: maybe move it to somewhere else?
+        self._translations_path = 'translations'
+
+        self._app_translator = QtCore.QTranslator(app)
+        self._app_translator.load(QtCore.QLocale.system().name(), self._translations_path)
+
+        app.installTranslator(self._app_translator)
 
     def _initWidgets(self):
         self._company_widget = widgets.CompanyWidget()
@@ -78,10 +90,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _initMenus(self):
         self._initFileMenu()
+        self._initLangMenu()
         self._initHelpMenu()
 
         menu_bar = self.menuBar()
         menu_bar.addMenu(self._file_menu)
+        menu_bar.addMenu(self._lang_menu)
         menu_bar.addMenu(self._help_menu)
     
     def _initFileMenu(self):
@@ -100,6 +114,44 @@ class MainWindow(QtWidgets.QMainWindow):
         self._file_menu.addMenu(self._import_menu)
         self._file_menu.addSeparator()
         self._file_menu.addAction(self._exit_action)
+
+    def _initLangMenu(self):
+        translations_dir       = QtCore.QDir(self._translations_path)
+        translation_file_names = translations_dir.entryList(['*.qm'])
+
+        languages = set()
+        languages.add('en_US')
+
+        # E.g. 'en_GB.qm', 'pt_BR.qm'
+        for file_name in translation_file_names:
+            # E.g. ('en_GB', '.qm'), ('pt_BR', '.qm')
+            language, _ = os.path.splitext(file_name)
+            languages.add(language)
+
+        languages = sorted(languages)
+
+        self._lang_menu   = QtWidgets.QMenu()
+        lang_action_group = QtWidgets.QActionGroup(self)
+        lang_action_group.triggered.connect(lambda action: self.setLocale(action.data()))
+
+        system_locale = QtCore.QLocale.system()
+
+        for language in languages:
+            locale = QtCore.QLocale(language)
+            action = QtWidgets.QAction()
+            action.setText(locale.name().replace('_', '-'))
+            action.setData(locale)
+            action.setCheckable(True)
+
+            is_system_locale = (
+                locale.language() == system_locale.language() and 
+                locale.country()  == system_locale.country()
+            )
+
+            action.setChecked(is_system_locale)
+
+            self._lang_menu.addAction(action)
+            lang_action_group.addAction(action)
 
     def _initHelpMenu(self):
         self._help_menu = QtWidgets.QMenu()
@@ -227,6 +279,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self._import_dfpitr_action.setStatusTip(self.tr("Import statements from a DFP or ITR file taken from CVM's Data Portal"))
 
         #===========================================================
+        # Menu: Language
+        #===========================================================
+        self._lang_menu.setTitle(self.tr('Language'))
+
+        #===========================================================
         # Menu: Help
         #===========================================================
         self._help_menu.setTitle(self.tr('Help'))
@@ -257,7 +314,12 @@ class MainWindow(QtWidgets.QMainWindow):
     # Overriden methods
     ################################################################################
     def changeEvent(self, event: QtCore.QEvent) -> None:
-        if event.type() == QtCore.QEvent.Type.LanguageChange:
+        if event.type() == QtCore.QEvent.Type.LocaleChange:
+            locale      = self.locale()
+            locale_name = locale.name() # en_US, pt_BR, ...
+
+            self._app_translator.load(locale_name, self._translations_path)
+            
             self.retranslateUi()
         
         super().changeEvent(event)
