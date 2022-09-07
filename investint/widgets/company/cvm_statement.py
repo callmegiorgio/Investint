@@ -33,7 +33,7 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         self._stmt_type_combo.currentIndexChanged.connect(self._onStatementTypeComboIndexChanged)
 
         for t in cvm.datatypes.StatementType:
-            self._stmt_type_combo.addItem(t.description, t)
+            self._stmt_type_combo.addItem(t.name, t)
 
         self._balance_type_lbl   = QtWidgets.QLabel()
         self._balance_type_combo = QtWidgets.QComboBox()
