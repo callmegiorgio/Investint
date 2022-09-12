@@ -39,7 +39,7 @@ class CompanyGeneralInformationWidget(QtWidgets.QWidget):
         self._securities_custody_country_lbl = widgets.DoubleLabel()
         self._issuer_status_lbl              = widgets.DoubleLabel()
         self._fiscal_year_closing_date       = widgets.DoubleLabel()
-        self._webpage_lbl                    = widgets.DoubleLabel()
+        self._website_lbl                    = widgets.DoubleLabel()
 
     def _initLayouts(self):
         main_layout = QtWidgets.QGridLayout()
@@ -60,7 +60,7 @@ class CompanyGeneralInformationWidget(QtWidgets.QWidget):
         main_layout.addWidget(self._establishment_date_lbl,         6, 0)
         main_layout.addWidget(self._issuer_status_lbl,              7, 0)
         main_layout.addWidget(self._fiscal_year_closing_date,       8, 0)
-        main_layout.addWidget(self._webpage_lbl,                    9, 0)
+        main_layout.addWidget(self._website_lbl,                    9, 0)
 
         self.setLayout(main_layout)
 
@@ -104,7 +104,7 @@ class CompanyGeneralInformationWidget(QtWidgets.QWidget):
 
         self._issuer_status_lbl.setLowerText(labelSince(gui.issuerStatusToString(co.issuer_status), co.issuer_status_date))
         self._fiscal_year_closing_date.setLowerText(labelSince(f'{co.fiscal_year_closing_day}/{co.fiscal_year_closing_month}', co.fiscal_year_change_date))
-        self._webpage_lbl.setLowerText(co.webpage)
+        self._website_lbl.setLowerText(co.website)
 
     def company(self) -> typing.Optional[models.PublicCompany]:
         return self._company
@@ -130,7 +130,7 @@ class CompanyGeneralInformationWidget(QtWidgets.QWidget):
         self._securities_custody_country_lbl.setUpperText(bold(self.tr('Securities Custody Country')))
         self._issuer_status_lbl.             setUpperText(bold(self.tr('Issuer Status')))
         self._fiscal_year_closing_date.      setUpperText(bold(self.tr('Fiscal Year Closing Date')))
-        self._webpage_lbl.                   setUpperText(bold(self.tr('Webpage')))
+        self._website_lbl.                   setUpperText(bold(self.tr('Website')))
     
         company = self.company()
 

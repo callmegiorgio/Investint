@@ -1,17 +1,16 @@
 from __future__ import annotations
+import cvm
 import dataclasses
 import datetime
 import typing
-import cvm
 import sqlalchemy     as sa
 import sqlalchemy.orm as sa_orm
-from cvm       import datatypes
 from investint import database, models
 
-def _enumByValue(enum_type: typing.Type[cvm.datatypes.enums.DescriptiveIntEnum]):
+def _enumByValue(enum_type: typing.Type[cvm.DescriptiveIntEnum]):
     return [str(e.value) for e in enum_type]
 
-def _enumByDescription(enum_type: typing.Type[cvm.datatypes.enums.DescriptiveIntEnum]):
+def _enumByDescription(enum_type: typing.Type[cvm.DescriptiveIntEnum]):
     return [e.description for e in enum_type]
 
 __all__ = [
@@ -34,25 +33,25 @@ class PublicCompany(models.Base):
     trade_name                 = sa.Column(sa.String(100))
     establishment_date         = sa.Column(sa.Date,        nullable=False)
     cvm_code                   = sa.Column(sa.String(6),   nullable=False, unique=True)
-    industry                   = sa.Column(sa.Enum(datatypes.Industry, values_callable=_enumByValue), nullable=False)
+    industry                   = sa.Column(sa.Enum(cvm.Industry, values_callable=_enumByValue), nullable=False)
     activity_description       = sa.Column(sa.String(200))
     registration_date          = sa.Column(sa.Date, nullable=False)
-    registration_status        = sa.Column(sa.Enum(datatypes.RegistrationStatus, values_callable=_enumByDescription), nullable=False)
+    registration_status        = sa.Column(sa.Enum(cvm.RegistrationStatus, values_callable=_enumByDescription), nullable=False)
     registration_status_date   = sa.Column(sa.Date, nullable=False)
-    registration_category      = sa.Column(sa.Enum(datatypes.RegistrationCategory, values_callable=_enumByDescription), nullable=False)
+    registration_category      = sa.Column(sa.Enum(cvm.RegistrationCategory, values_callable=_enumByDescription), nullable=False)
     registration_category_date = sa.Column(sa.Date, nullable=False)
     cancelation_date           = sa.Column(sa.Date)
     cancelation_reason         = sa.Column(sa.String(100))
-    home_country               = sa.Column(sa.Enum(datatypes.Country), nullable=False)
-    securities_custody_country = sa.Column(sa.Enum(datatypes.Country))
-    issuer_status              = sa.Column(sa.Enum(datatypes.IssuerStatus, values_callable=_enumByDescription))
+    home_country               = sa.Column(sa.Enum(cvm.Country), nullable=False)
+    securities_custody_country = sa.Column(sa.Enum(cvm.Country))
+    issuer_status              = sa.Column(sa.Enum(cvm.IssuerStatus, values_callable=_enumByDescription))
     issuer_status_date         = sa.Column(sa.Date)
-    controlling_interest       = sa.Column(sa.Enum(datatypes.ControllingInterest, values_callable=_enumByDescription))
+    controlling_interest       = sa.Column(sa.Enum(cvm.ControllingInterest, values_callable=_enumByDescription))
     controlling_interest_date  = sa.Column(sa.Date)
     fiscal_year_closing_day    = sa.Column(sa.Integer, nullable=False)
     fiscal_year_closing_month  = sa.Column(sa.Integer, nullable=False)
     fiscal_year_change_date    = sa.Column(sa.Date)
-    webpage                    = sa.Column(sa.String(100))
+    website                    = sa.Column(sa.String(100))
     is_listed                  = sa.Column(sa.Boolean, nullable=False, default=False)
 
     documents: typing.List['Document'] = sa_orm.relationship('Document', back_populates='company', uselist=True)
@@ -94,7 +93,7 @@ class PublicCompany(models.Base):
         return PublicCompany.findByCNPJ(cnpj) is not None
 
     @staticmethod
-    def fromFCA(fca: cvm.datatypes.FCA) -> typing.Optional[PublicCompany]:
+    def fromFCA(fca: cvm.FCA) -> typing.Optional[PublicCompany]:
         if fca.issuer_company is None:
             return None
 
@@ -124,7 +123,7 @@ class PublicCompany(models.Base):
             fiscal_year_closing_day    = fca.issuer_company.fiscal_year_end_day,
             fiscal_year_closing_month  = fca.issuer_company.fiscal_year_end_month,
             fiscal_year_change_date    = fca.issuer_company.fiscal_year_last_changed,
-            webpage                    = fca.issuer_company.webpage
+            website                    = fca.issuer_company.webpage
         )
 
 class Document(models.Base):
@@ -132,7 +131,7 @@ class Document(models.Base):
 
     id             = sa.Column(sa.Integer,                      primary_key=True, autoincrement=False)
     company_id     = sa.Column(sa.Integer,                      sa.ForeignKey('public_company.id'), nullable=False)
-    type           = sa.Column(sa.Enum(datatypes.DocumentType), nullable=False)
+    type           = sa.Column(sa.Enum(cvm.DocumentType), nullable=False)
     version        = sa.Column(sa.SmallInteger,                 nullable=False)
     reference_date = sa.Column(sa.Date,                         nullable=False)
     receipt_date   = sa.Column(sa.Date,                         nullable=False)
@@ -144,7 +143,7 @@ class Document(models.Base):
     balance_sheet:    typing.Optional['BalanceSheet']    = sa_orm.relationship('BalanceSheet',    back_populates='document',  uselist=False)
 
     @staticmethod
-    def fromDfpItr(dfpitr: cvm.datatypes.DFPITR) -> Document:
+    def fromDfpItr(dfpitr: cvm.DFPITR) -> Document:
         statements = []
 
         for grouped_collection in dfpitr.grouped_collections():
@@ -163,9 +162,9 @@ class Document(models.Base):
 
     @staticmethod
     def referenceDates(company_id: int,
-                       document_type: cvm.datatypes.DocumentType,
-                       statement_type: cvm.datatypes.StatementType,
-                       balance_type: cvm.datatypes.BalanceType
+                       document_type: cvm.DocumentType,
+                       statement_type: cvm.StatementType,
+                       balance_type: cvm.BalanceType
     ) -> typing.List[datetime.date]:
         S: Statement = sa_orm.aliased(Statement, name='s')
         D: Document  = sa_orm.aliased(Document,  name='d')
@@ -188,20 +187,20 @@ class Document(models.Base):
 class Statement(models.Base):
     __tablename__ = 'statement'
 
-    id                = sa.Column(sa.Integer,                       primary_key=True, autoincrement=True)
-    document_id       = sa.Column(sa.Integer,                       sa.ForeignKey('document.id'), nullable=False)
-    statement_type    = sa.Column(sa.Enum(datatypes.StatementType), nullable=False)
-    balance_type      = sa.Column(sa.Enum(datatypes.BalanceType),   nullable=False)
+    id                = sa.Column(sa.Integer,                 primary_key=True, autoincrement=True)
+    document_id       = sa.Column(sa.Integer,                 sa.ForeignKey('document.id'), nullable=False)
+    statement_type    = sa.Column(sa.Enum(cvm.StatementType), nullable=False)
+    balance_type      = sa.Column(sa.Enum(cvm.BalanceType),   nullable=False)
     period_start_date = sa.Column(sa.Date)
-    period_end_date   = sa.Column(sa.Date,                          nullable=False)
+    period_end_date   = sa.Column(sa.Date,                    nullable=False)
 
     document: Document             = sa_orm.relationship('Document', back_populates='statements', uselist=False)
     accounts: typing.List[Account] = sa_orm.relationship('Account',  back_populates='statement',  uselist=True)
 
     @staticmethod
-    def fromCollection(collection: cvm.datatypes.StatementCollection) -> typing.List[Statement]:
+    def fromCollection(collection: cvm.StatementCollection) -> typing.List[Statement]:
 
-        def makeStatement(accounts: cvm.datatypes.AccountTuple):
+        def makeStatement(accounts: cvm.AccountTuple):
             stmt = Statement(
                 balance_type = collection.balance_type,
                 accounts     = [Account.fromCVM(cvm_acc) for cvm_acc in accounts.normalized()]
@@ -219,32 +218,32 @@ class Statement(models.Base):
         stmts = []
 
         stmt = makeStatement(bpa.accounts)
-        stmt.statement_type    = cvm.datatypes.StatementType.BPA
+        stmt.statement_type    = cvm.StatementType.BPA
         stmt.period_start_date = None
         stmt.period_end_date   = bpa.period_end_date
         stmts.append(stmt)
 
         stmt = makeStatement(bpp.accounts)
-        stmt.statement_type    = cvm.datatypes.StatementType.BPP
+        stmt.statement_type    = cvm.StatementType.BPP
         stmt.period_start_date = None
         stmt.period_end_date   = bpp.period_end_date
         stmts.append(stmt)
 
         stmt = makeStatement(dre.accounts)
-        stmt.statement_type    = cvm.datatypes.StatementType.DRE
+        stmt.statement_type    = cvm.StatementType.DRE
         stmt.period_start_date = dre.period_start_date
         stmt.period_end_date   = dre.period_end_date
         stmts.append(stmt)
 
         if dra is not None:
             stmt = makeStatement(dra.accounts)
-            stmt.statement_type    = cvm.datatypes.StatementType.DRA
+            stmt.statement_type    = cvm.StatementType.DRA
             stmt.period_start_date = dra.period_start_date
             stmt.period_end_date   = dra.period_end_date
             stmts.append(stmt)
 
         stmt = makeStatement(dfc.accounts)
-        stmt.statement_type    = cvm.datatypes.StatementType.DFC
+        stmt.statement_type    = cvm.StatementType.DFC
         stmt.period_start_date = dfc.period_start_date
         stmt.period_end_date   = dfc.period_end_date
         stmts.append(stmt)
@@ -253,7 +252,7 @@ class Statement(models.Base):
 
         if dva is not None:
             stmt = makeStatement(dva.accounts)
-            stmt.statement_type    = cvm.datatypes.StatementType.DVA
+            stmt.statement_type    = cvm.StatementType.DVA
             stmt.period_start_date = dva.period_start_date
             stmt.period_end_date   = dva.period_end_date
             stmts.append(stmt)
@@ -262,7 +261,7 @@ class Statement(models.Base):
 
 @database.mapper_registry.mapped
 @dataclasses.dataclass
-class IncomeStatement(cvm.balances.IncomeStatement):
+class IncomeStatement(cvm.IncomeStatement):
     __table__ = sa.Table(
         'income_statement',
         models.Base.metadata,
@@ -295,7 +294,7 @@ class IncomeStatement(cvm.balances.IncomeStatement):
 
 @database.mapper_registry.mapped
 @dataclasses.dataclass
-class BalanceSheet(cvm.balances.BalanceSheet):
+class BalanceSheet(cvm.BalanceSheet):
     __table__ = sa.Table(
         'balance_sheet',
         models.Base.metadata,
@@ -341,7 +340,7 @@ class Account(models.Base):
     statement: Statement = sa_orm.relationship('Statement', back_populates='accounts', uselist=False)
 
     @staticmethod
-    def fromCVM(account: cvm.datatypes.Account):
+    def fromCVM(account: cvm.Account):
         return Account(
             code     = account.code,
             name     = account.name,
