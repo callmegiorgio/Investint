@@ -23,6 +23,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.statusBar()
 
+        self.loadSettings()
         self.retranslateUi()
 
     def _initTranslators(self):
@@ -283,6 +284,21 @@ class MainWindow(QtWidgets.QMainWindow):
             while len(actions) > 10:
                 last_action = actions.pop()
                 self._open_recently_menu.removeAction(last_action)
+        finally:
+            self._settings.setValue('recentlyOpenedFiles', [action.text() for action in actions])
+
+    def loadSettings(self):
+        self._settings = QtCore.QSettings()
+        
+        recently_opened_files = self._settings.value('recentlyOpenedFiles', [], list)
+
+        for file_path in recently_opened_files:
+            action = QtWidgets.QAction(file_path)
+            action.triggered.connect(functools.partial(self._onRecentlyOpenActionTriggered, file_path))
+
+            self._open_recently_actions.append(action)
+
+        self._open_recently_menu.addActions(self._open_recently_actions)
 
     def retranslateUi(self):
         self.retranslateWindowTitle()

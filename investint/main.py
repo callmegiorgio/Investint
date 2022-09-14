@@ -23,6 +23,9 @@ def createEngine():
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
+    app.setApplicationName('Investint')
+    app.setOrganizationName('Investint')
+
     win = widgets.MainWindow()
     win.setMinimumSize(QtCore.QSize(800, 600))
     win.setEngine(createEngine())
