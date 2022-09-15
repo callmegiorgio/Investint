@@ -234,8 +234,17 @@ class MainWindow(QtWidgets.QMainWindow):
         if dst_engine is None:
             return
 
-        if os.path.samefile(src_engine.url.database, dst_engine.url.database):
-            return
+        try:
+            # Ensure the source database is not same as the destination database,
+            # as there is not need to copy a whole database to the same file.
+            if os.path.samefile(src_engine.url.database, dst_engine.url.database):
+                return
+
+        except (TypeError, FileNotFoundError):
+            # TypeError is raised if `src_engine` is an in-memory database;
+            # and FileNotFoundError if `dst_engine` is a new file. In either
+            # case, ignore it and proceed to back them up.
+            pass
 
         src_conn = src_engine.raw_connection()
         dst_conn = dst_engine.raw_connection()
