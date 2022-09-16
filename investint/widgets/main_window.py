@@ -23,6 +23,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.statusBar()
 
+        self.loadSettings()
         self.retranslateUi()
 
     def _initTranslators(self):
@@ -66,6 +67,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self._connect_db_action.setIcon(fugue.icon('database-network'))
         self._connect_db_action.triggered.connect(self.showDatabaseClientDialog)
 
+        self._open_recently_actions = []
+
         self._import_fca_action = QtWidgets.QAction()
         self._import_fca_action.setIcon(fugue.icon('building'))
         self._import_fca_action.triggered.connect(
@@ -99,6 +102,8 @@ class MainWindow(QtWidgets.QMainWindow):
         menu_bar.addMenu(self._help_menu)
     
     def _initFileMenu(self):
+        self._open_recently_menu = QtWidgets.QMenu()
+
         self._import_menu = QtWidgets.QMenu()
         self._import_menu.setIcon(fugue.icon('database-import'))
         self._import_menu.addAction(self._import_fca_action)
@@ -108,6 +113,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._file_menu.addAction(self._new_db_file_action)
         self._file_menu.addAction(self._open_db_file_action)
         self._file_menu.addAction(self._connect_db_action)
+        self._file_menu.addMenu(self._open_recently_menu)
         self._file_menu.addSeparator()
         self._file_menu.addAction(self._save_db_as_action)
         self._file_menu.addSeparator()
@@ -171,6 +177,7 @@ class MainWindow(QtWidgets.QMainWindow):
         engine = widgets.getOpenDatabaseFileEngine(self)
 
         if engine is not None:
+            self.addRecentlyOpen(engine.url.database)
             self.setEngine(engine)
 
     def showDatabaseClientDialog(self):
@@ -244,6 +251,55 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setEngine(dst_engine)
 
+    def addRecentlyOpen(self, file_path: str):
+        file_path = os.path.abspath(file_path)
+        actions   = self._open_recently_actions
+
+        for i in range(len(actions)):
+            action = actions[i]
+
+            if action.text() == file_path:
+                if len(actions) == 1:
+                    return
+                else:
+                    actions.pop(i)
+                    self._open_recently_menu.removeAction(action)
+                    break
+
+        new_action = QtWidgets.QAction(file_path)
+        new_action.triggered.connect(functools.partial(self._onRecentlyOpenActionTriggered, file_path))
+
+        try:
+            before = actions[0]
+        except IndexError:
+            # `actions` is empty, so insert `new_action` as the very first action.
+            actions.append(new_action)
+            self._open_recently_menu.addAction(new_action)
+        else:
+            # `actions` is not empty, so insert `new_action` at the first index.
+            actions.insert(0, new_action)
+            self._open_recently_menu.insertAction(before, new_action)
+
+            # Ensure `actions` has at most 10 items.
+            while len(actions) > 10:
+                last_action = actions.pop()
+                self._open_recently_menu.removeAction(last_action)
+        finally:
+            self._settings.setValue('recentlyOpenedFiles', [action.text() for action in actions])
+
+    def loadSettings(self):
+        self._settings = QtCore.QSettings()
+        
+        recently_opened_files = self._settings.value('recentlyOpenedFiles', [], list)
+
+        for file_path in recently_opened_files:
+            action = QtWidgets.QAction(file_path)
+            action.triggered.connect(functools.partial(self._onRecentlyOpenActionTriggered, file_path))
+
+            self._open_recently_actions.append(action)
+
+        self._open_recently_menu.addActions(self._open_recently_actions)
+
     def retranslateUi(self):
         self.retranslateWindowTitle()
 
@@ -266,6 +322,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._exit_action.setText(self.tr('&Exit'))
         self._exit_action.setStatusTip(self.tr('Exit the application'))
+
+        #===========================================================
+        # Menu: File / Open Recently
+        #===========================================================
+        self._open_recently_menu.setTitle(self.tr('Open Recently'))
 
         #===========================================================
         # Menu: File / Import
@@ -323,3 +384,19 @@ class MainWindow(QtWidgets.QMainWindow):
             self.retranslateUi()
         
         super().changeEvent(event)
+
+    ################################################################################
+    # Private slots
+    ################################################################################
+    def _onRecentlyOpenActionTriggered(self, file_path: str):
+        if not os.path.exists(file_path):
+            QtWidgets.QMessageBox.information(
+                self,
+                self.tr('Non-existant File'),
+                self.tr("File '{}' does not exist!").format(file_path)
+            )
+        else:
+            engine = database.createEngineFromFile(file_path)
+
+            self.addRecentlyOpen(file_path)
+            self.setEngine(engine)
