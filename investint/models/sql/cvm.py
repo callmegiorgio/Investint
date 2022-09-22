@@ -42,7 +42,7 @@ class PublicCompany(models.Base):
     registration_category_date = sa.Column(sa.Date, nullable=False)
     cancelation_date           = sa.Column(sa.Date)
     cancelation_reason         = sa.Column(sa.String(100))
-    home_country               = sa.Column(sa.Enum(cvm.Country), nullable=False)
+    home_country               = sa.Column(sa.Enum(cvm.Country))
     securities_custody_country = sa.Column(sa.Enum(cvm.Country))
     issuer_status              = sa.Column(sa.Enum(cvm.IssuerStatus, values_callable=_enumByDescription))
     issuer_status_date         = sa.Column(sa.Date)
