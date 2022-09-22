@@ -147,8 +147,10 @@ class Document(models.Base):
         statements = []
 
         for grouped_collection in dfpitr.grouped_collections():
-            for collection in grouped_collection.collections():
-                statements += Statement.fromCollection(collection)
+            statements += Statement.fromCollection(grouped_collection.last)
+
+            if grouped_collection.previous:
+                statements += Statement.fromCollection(grouped_collection.previous)
 
         return Document(
             id             = dfpitr.id,
@@ -200,10 +202,12 @@ class Statement(models.Base):
     @staticmethod
     def fromCollection(collection: cvm.StatementCollection) -> typing.List[Statement]:
 
-        def makeStatement(accounts: cvm.AccountTuple):
+        def makeStatement(cvm_statement: cvm.Statement):
+            cvm_statement = cvm_statement.normalized()
+
             stmt = Statement(
                 balance_type = collection.balance_type,
-                accounts     = [Account.fromCVM(cvm_acc) for cvm_acc in accounts.normalized()]
+                accounts     = [Account.fromCVM(cvm_acc) for cvm_acc in cvm_statement.accounts]
             )
 
             return stmt
@@ -217,41 +221,43 @@ class Statement(models.Base):
         
         stmts = []
 
-        stmt = makeStatement(bpa.accounts)
+        stmt = makeStatement(bpa)
         stmt.statement_type    = cvm.StatementType.BPA
         stmt.period_start_date = None
         stmt.period_end_date   = bpa.period_end_date
         stmts.append(stmt)
 
-        stmt = makeStatement(bpp.accounts)
+        stmt = makeStatement(bpp)
         stmt.statement_type    = cvm.StatementType.BPP
         stmt.period_start_date = None
         stmt.period_end_date   = bpp.period_end_date
         stmts.append(stmt)
 
-        stmt = makeStatement(dre.accounts)
-        stmt.statement_type    = cvm.StatementType.DRE
-        stmt.period_start_date = dre.period_start_date
-        stmt.period_end_date   = dre.period_end_date
-        stmts.append(stmt)
+        if dre is not None:
+            stmt = makeStatement(dre)
+            stmt.statement_type    = cvm.StatementType.DRE
+            stmt.period_start_date = dre.period_start_date
+            stmt.period_end_date   = dre.period_end_date
+            stmts.append(stmt)
 
         if dra is not None:
-            stmt = makeStatement(dra.accounts)
+            stmt = makeStatement(dra)
             stmt.statement_type    = cvm.StatementType.DRA
             stmt.period_start_date = dra.period_start_date
             stmt.period_end_date   = dra.period_end_date
             stmts.append(stmt)
 
-        stmt = makeStatement(dfc.accounts)
-        stmt.statement_type    = cvm.StatementType.DFC
-        stmt.period_start_date = dfc.period_start_date
-        stmt.period_end_date   = dfc.period_end_date
-        stmts.append(stmt)
+        if dfc is not None:
+            stmt = makeStatement(dfc)
+            stmt.statement_type    = cvm.StatementType.DFC
+            stmt.period_start_date = dfc.period_start_date
+            stmt.period_end_date   = dfc.period_end_date
+            stmts.append(stmt)
 
         # TODO: DMPL
 
         if dva is not None:
-            stmt = makeStatement(dva.accounts)
+            stmt = makeStatement(dva)
             stmt.statement_type    = cvm.StatementType.DVA
             stmt.period_start_date = dva.period_start_date
             stmt.period_end_date   = dva.period_end_date
