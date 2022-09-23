@@ -21,6 +21,16 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         self.retranslateUi()
     
     def _initWidgets(self):
+        self._comparative_account_tree = widgets.AccountTreeWidget()
+        self._comparative_account_tree.setModel(models.ComparativeAccountTreeModel())
+
+        self._dmpl = widgets.CompanyDMPLWidget()
+
+        self._stacked_widget = QtWidgets.QStackedWidget()
+        self._stacked_widget.addWidget(self._comparative_account_tree)
+        self._stacked_widget.addWidget(self._dmpl)
+        self._stacked_widget.setCurrentWidget(self._comparative_account_tree)
+
         self._doc_type_lbl   = QtWidgets.QLabel()
         self._doc_type_combo = QtWidgets.QComboBox()
         self._doc_type_combo.currentIndexChanged.connect(self._onDocumentTypeComboIndexChanged)
@@ -43,8 +53,6 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         self._reference_date_combo = QtWidgets.QComboBox()
         self._reference_date_combo.currentIndexChanged.connect(self.applyFilter)
 
-        self._account_tree = widgets.AccountTreeWidget()
-
     def _initLayouts(self):
         filter_layout = QtWidgets.QGridLayout()
         filter_layout.addWidget(self._doc_type_lbl,         0, 0)
@@ -59,20 +67,20 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         
         main_layout = QtWidgets.QVBoxLayout()
         main_layout.addLayout(filter_layout)
-        main_layout.addWidget(self._account_tree)
+        main_layout.addWidget(self._stacked_widget)
 
         self.setLayout(main_layout)
 
     ################################################################################
     # Public methods
     ################################################################################
-    def documentType(self) -> cvm.datatypes.DocumentType:
+    def documentType(self) -> cvm.DocumentType:
         return self._doc_type_combo.currentData()
 
-    def statementType(self) -> cvm.datatypes.StatementType:
+    def statementType(self) -> cvm.StatementType:
         return self._stmt_type_combo.currentData()
 
-    def balanceType(self) -> cvm.datatypes.BalanceType:
+    def balanceType(self) -> cvm.BalanceType:
         return self._balance_type_widget.balanceType()
 
     def referenceDate(self) -> int:
@@ -92,13 +100,24 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         if self._company is None:
             return
 
-        self._account_tree.model().select(
-            self._company.cnpj,
-            self.referenceDate(),
-            self.documentType(),
-            self.statementType(),
-            self.balanceType()
-        )
+        current_stacked_widget = self._stacked_widget.currentWidget()
+
+        if current_stacked_widget is self._comparative_account_tree:
+            model: models.ComparativeAccountTreeModel = self._comparative_account_tree.model()
+            model.select(
+                self._company.cnpj,
+                self.referenceDate(),
+                self.documentType(),
+                self.statementType(),
+                self.balanceType()
+            )
+        else:
+            self._dmpl.select(
+                self._company.id,
+                self.referenceDate(),
+                self.documentType(),
+                self.balanceType()
+            )
     
     def retranslateUi(self):
         self._doc_type_lbl.setText(self.tr('Document'))
@@ -126,6 +145,12 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def _onStatementTypeComboIndexChanged(self):
         self._resetReferenceDateCombo()
+
+        if self.statementType() == cvm.StatementType.DMPL:
+            self._stacked_widget.setCurrentWidget(self._dmpl)
+        else:
+            self._stacked_widget.setCurrentWidget(self._comparative_account_tree)
+
         self.applyFilter()
 
     @QtCore.pyqtSlot()
