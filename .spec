@@ -1,14 +1,42 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 
+def is_extension(filepath: str, ext: str) -> bool:
+    """
+    Returns whether `ext` is the extension of `filepath`.
+    """
+
+    return os.path.splitext(filepath)[1] == ext
+
+def extension_count(dirpath: str, ext: str) -> int:
+    """
+    Checks whether the directory `dirpath` has at least one file with extension `ext`.
+
+    Returns 0 if `dirpath` doesn't exist or there is no such file with that extension.
+    Otherwise, returns the number of files with that extension.
+    """
+
+    try:
+        return sum(1 for fp in os.listdir(dirpath) if is_extension(fp, ext))
+    except FileNotFoundError:
+        return 0
 
 block_cipher = None
 
+datas = []
+
+qm_count = extension_count('data/translations', '.qm')
+
+if qm_count != 0:
+    datas.append(('data/translations/*.qm', 'translations'))
+
+print('USER INFO: translations found ==', qm_count)
 
 a = Analysis(
     ['build/lib/investint/__main__.py'],
     pathex=[],
     binaries=[],
-    datas=[('data/translations/*.qm', 'translations')],
+    datas=datas,
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
