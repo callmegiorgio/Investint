@@ -1,7 +1,12 @@
-from investint.widgets.company_drop_down import CompanyDropDown
-from investint.widgets.double_label      import DoubleLabel
-from investint.widgets.import_window     import ImportWindow
-from investint.widgets.import_fca_window import ImportFCAWindow
-from investint.widgets.general_info_widget import GeneralInfoWidget
-from investint.widgets.main_widget       import MainWidget
-from investint.widgets.main_window       import MainWindow
+"""
+This package contains all subclasses of `QWidget`
+used by the application. The top-level widget is
+the class `MainWindow`, which, directly or indirectly,
+shows all other widgets in this package.
+"""
+
+from investint.widgets.common      import *
+from investint.widgets.company     import *
+from investint.widgets.importing   import *
+from investint.widgets.database    import *
+from investint.widgets.main_window import *

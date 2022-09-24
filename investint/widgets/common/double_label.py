@@ -1,9 +1,16 @@
 import typing
 from PyQt5 import QtCore, QtWidgets
 
+__all__ = [
+    'DoubleLabel'
+]
+
 class DoubleLabel(QtWidgets.QWidget):
+    ################################################################################
+    # Initialization
+    ################################################################################
     def __init__(self, upper_text: str = '', lower_text: str = '', parent: typing.Optional[QtWidgets.QWidget] = None):
-        super().__init__(parent)
+        super().__init__(parent=parent)
 
         self._initWidgets(upper_text, lower_text)
         self._initLayouts()
@@ -24,6 +31,9 @@ class DoubleLabel(QtWidgets.QWidget):
 
         self.setLayout(main_layout)
 
+    ################################################################################
+    # Public methods
+    ################################################################################
     def setTexts(self, upper_text: str, lower_text: str):
         self._upper_lbl.setText(upper_text)
         self._lower_lbl.setText(lower_text)
