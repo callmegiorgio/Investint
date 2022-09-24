@@ -13,6 +13,10 @@ __all__ = [
 ]
 
 class DMPLAccountTreeModel(AccountTreeModel):
+    @staticmethod
+    def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:
+        return QtCore.QCoreApplication.translate('DMPLAccountTreeModel', source_text, disambiguation, n)
+
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None):
         super().__init__(parent=parent)
 
@@ -68,14 +72,14 @@ class DMPLAccountTreeModel(AccountTreeModel):
         super().retranslateUi()
 
         self._column_texts = {
-            'share_capital':                       self.tr('Share Capital'),
-            'capital_reserve_and_treasury_shares': self.tr('Capital Reserve and Treasure Shares'),
-            'profit_reserves':                     self.tr('Profit Reserves'),
-            'unappropriated_retained_earnings':    self.tr('Unappropriated Retained Earnings'),
-            'other_comprehensive_income':          self.tr('Other Comprehensive Income'),
-            'controlling_interest':                self.tr('Controlling Interest'),
-            'non_controlling_interest':            self.tr('Non-Controlling Interest'),
-            'consolidated_equity':                 self.tr('Consolidated Equity'),
+            'share_capital':                       DMPLAccountTreeModel.tr('Share Capital'),
+            'capital_reserve_and_treasury_shares': DMPLAccountTreeModel.tr('Capital Reserve and\nTreasury Shares'),
+            'profit_reserves':                     DMPLAccountTreeModel.tr('Profit Reserves'),
+            'unappropriated_retained_earnings':    DMPLAccountTreeModel.tr('Unappropriated Retained\nEarnings'),
+            'other_comprehensive_income':          DMPLAccountTreeModel.tr('Other Comprehensive\nIncome'),
+            'controlling_interest':                DMPLAccountTreeModel.tr('Controlling Interest'),
+            'non_controlling_interest':            DMPLAccountTreeModel.tr('Non-Controlling Interest'),
+            'consolidated_equity':                 DMPLAccountTreeModel.tr('Consolidated Equity'),
         }
 
         self.headerDataChanged.emit(QtCore.Qt.Orientation.Horizontal, self.staticColumnCount(), self.columnCount() - 1)

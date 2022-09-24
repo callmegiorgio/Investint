@@ -60,3 +60,17 @@ class CompanyDMPLWidget(QtWidgets.QWidget):
                 tab_name = str(dmpl.period_end_date)
 
             self._tabs.addTab(account_tree, tab_name)
+
+    def retranslateUi(self):
+        for i in range(self._tabs.count()):
+            model: models.DMPLAccountTreeModel = self._tabs.widget(i).model()
+            model.retranslateUi()
+
+    ################################################################################
+    # Overriden methods
+    ################################################################################
+    def changeEvent(self, event: QtCore.QEvent) -> None:
+        if event.type() == QtCore.QEvent.Type.LanguageChange:
+            self.retranslateUi()
+        
+        super().changeEvent(event)
