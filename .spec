@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['investint/main.py'],
+    ['build/lib/investint/__main__.py'],
     pathex=[],
     binaries=[],
     datas=[('data/translations/*.qm', 'translations')],
@@ -40,9 +40,9 @@ exe = EXE(
 )
 
 if bool(__debug__):
-    dist_dir = 'investint/debug'
+    dist_dir = 'debug'
 else:
-    dist_dir = 'investint/release'
+    dist_dir = 'release'
 
 coll = COLLECT(
     exe,
