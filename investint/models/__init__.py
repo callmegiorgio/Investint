@@ -16,6 +16,8 @@ from investint.models.sql.cvm                     import *
 from investint.models.sql.b3                      import *
 from investint.models.qt.reversible_proxy         import *
 from investint.models.qt.account_tree             import *
+from investint.models.qt.comparative_account_tree import *
+from investint.models.qt.dmpl_account_tree        import *
 from investint.models.qt.breakdown_table          import *
 from investint.models.qt.mapped_breakdown_table   import *
 from investint.models.qt.company_statement        import *

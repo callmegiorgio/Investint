@@ -18,10 +18,10 @@ class AccountTreeWidget(QtWidgets.QWidget):
     
     def _initWidgets(self):
         self._view = QtWidgets.QTreeView()
-        self._view.setModel(models.AccountTreeModel())
         self._view.header().setStretchLastSection(False)
         self._view.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Interactive)
-        self._view.model().modelReset.connect(self._onModelReset)
+
+        self.setModel(models.AccountTreeModel())
 
     def _initLayouts(self):
         main_layout = QtWidgets.QVBoxLayout()
@@ -33,8 +33,42 @@ class AccountTreeWidget(QtWidgets.QWidget):
     ################################################################################
     # Public methods
     ################################################################################
+    def setModel(self, model: models.AccountTreeModel):
+        current_model = self._view.model()
+
+        if model is current_model:
+            return
+
+        if current_model is not None:
+            current_model.modelReset.disconnect(self._onModelReset)
+
+        self._view.setModel(model)
+        model.modelReset.connect(self._onModelReset)
+
+        self.expandTopLevel()
+        self.resizeColumnsToContents()
+
     def model(self) -> models.AccountTreeModel:
         return self._view.model()
+
+    def expandTopLevel(self):
+        top_level_count = self.model().rowCount()
+
+        if top_level_count == 1:
+            # Expand the model if it has only one top-level index.
+            self._view.expandRecursively(QtCore.QModelIndex(), 1)
+
+    def resizeColumnsToContents(self):
+        # Resize all sections (columns), considering
+        # the contents of all visible indexes.
+        header = self._view.header()
+        header.resizeSections(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+
+        # Add a little gap between sections, so that
+        # contents are not too close to one another.
+        for section in range(header.count()):
+            section_size = header.sectionSize(section)
+            header.resizeSection(section, section_size + 20)
 
     def retranslateUi(self) -> None:
         self.model().retranslateUi()
@@ -53,19 +87,5 @@ class AccountTreeWidget(QtWidgets.QWidget):
     ################################################################################
     @QtCore.pyqtSlot()
     def _onModelReset(self):
-        top_level_count = self.model().rowCount()
-
-        if top_level_count == 1:
-            # Expand the model if it has only one top-level index.
-            self._view.expandRecursively(QtCore.QModelIndex(), 1)
-
-        # Now resize all sections (columns), considering
-        # the contents of all visible indexes.
-        header = self._view.header()
-        header.resizeSections(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
-
-        # Add a little gap between sections, so that
-        # contents are not too close to one another.
-        for section in range(header.count()):
-            section_size = header.sectionSize(section)
-            header.resizeSection(section, section_size + 20)
+        self.expandTopLevel()
+        self.resizeColumnsToContents()

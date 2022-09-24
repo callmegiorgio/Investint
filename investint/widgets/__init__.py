@@ -11,6 +11,7 @@ from investint.widgets.common.double_label         import *
 from investint.widgets.common.balance_type         import *
 from investint.widgets.company.drop_down           import *
 from investint.widgets.company.general_information import *
+from investint.widgets.company.dmpl                import *
 from investint.widgets.company.cvm_statement       import *
 from investint.widgets.company.statement_period    import *
 from investint.widgets.company.statement           import *

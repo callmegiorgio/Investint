@@ -17,7 +17,9 @@ __all__ = [
     'PublicCompany',
     'Document',
     'Statement',
+    'BaseAccount',
     'Account',
+    'DMPLAccount',
     'IncomeStatement',
     'BalanceSheet'
 ]
@@ -129,12 +131,12 @@ class PublicCompany(models.Base):
 class Document(models.Base):
     __tablename__ = 'document'
 
-    id             = sa.Column(sa.Integer,                      primary_key=True, autoincrement=False)
-    company_id     = sa.Column(sa.Integer,                      sa.ForeignKey('public_company.id'), nullable=False)
+    id             = sa.Column(sa.Integer,                primary_key=True, autoincrement=False)
+    company_id     = sa.Column(sa.Integer,                sa.ForeignKey('public_company.id'), nullable=False)
     type           = sa.Column(sa.Enum(cvm.DocumentType), nullable=False)
-    version        = sa.Column(sa.SmallInteger,                 nullable=False)
-    reference_date = sa.Column(sa.Date,                         nullable=False)
-    receipt_date   = sa.Column(sa.Date,                         nullable=False)
+    version        = sa.Column(sa.SmallInteger,           nullable=False)
+    reference_date = sa.Column(sa.Date,                   nullable=False)
+    receipt_date   = sa.Column(sa.Date,                   nullable=False)
     url            = sa.Column(sa.String(121))
 
     company:          PublicCompany                      = sa_orm.relationship('PublicCompany',   back_populates='documents', uselist=False)
@@ -186,6 +188,27 @@ class Document(models.Base):
 
         return list(row[0] for row in result)
 
+    @staticmethod
+    def find(company_id: int, document_type: cvm.DocumentType, reference_date: datetime.date) -> typing.Optional[Document]:
+        D: Document = sa_orm.aliased(Document, name='d')
+
+        select_stmt = (
+            sa.select(D)
+              .where(D.company_id     == company_id)
+              .where(D.type           == document_type)
+              .where(D.reference_date == reference_date)
+              .order_by(D.version.desc())
+              .limit(1)
+        )
+
+        session = database.Session()
+        row     = session.execute(select_stmt).one_or_none()
+
+        if row is None:
+            return None
+        
+        return row[0]
+
 class Statement(models.Base):
     __tablename__ = 'statement'
 
@@ -196,74 +219,64 @@ class Statement(models.Base):
     period_start_date = sa.Column(sa.Date)
     period_end_date   = sa.Column(sa.Date,                    nullable=False)
 
-    document: Document             = sa_orm.relationship('Document', back_populates='statements', uselist=False)
-    accounts: typing.List[Account] = sa_orm.relationship('Account',  back_populates='statement',  uselist=True)
+    document: Document                   = sa_orm.relationship('Document',     back_populates='statements', uselist=False)
+    accounts: typing.List['BaseAccount'] = sa_orm.relationship('BaseAccount',  back_populates='statement',  uselist=True)
 
     @staticmethod
     def fromCollection(collection: cvm.StatementCollection) -> typing.List[Statement]:
-
-        def makeStatement(cvm_statement: cvm.Statement):
-            cvm_statement = cvm_statement.normalized()
-
-            stmt = Statement(
-                balance_type = collection.balance_type,
-                accounts     = [Account.fromCVM(cvm_acc) for cvm_acc in cvm_statement.accounts]
-            )
-
-            return stmt
-
-        bpa = collection.bpa
-        bpp = collection.bpp
-        dre = collection.dre
-        dra = collection.dra
-        dfc = collection.dfc
-        dva = collection.dva
-        
         stmts = []
 
-        stmt = makeStatement(bpa)
-        stmt.statement_type    = cvm.StatementType.BPA
-        stmt.period_start_date = None
-        stmt.period_end_date   = bpa.period_end_date
-        stmts.append(stmt)
+        for stmt_type in cvm.StatementType:
+            cvm_stmt = collection.statement(stmt_type)
 
-        stmt = makeStatement(bpp)
-        stmt.statement_type    = cvm.StatementType.BPP
-        stmt.period_start_date = None
-        stmt.period_end_date   = bpp.period_end_date
-        stmts.append(stmt)
-
-        if dre is not None:
-            stmt = makeStatement(dre)
-            stmt.statement_type    = cvm.StatementType.DRE
-            stmt.period_start_date = dre.period_start_date
-            stmt.period_end_date   = dre.period_end_date
-            stmts.append(stmt)
-
-        if dra is not None:
-            stmt = makeStatement(dra)
-            stmt.statement_type    = cvm.StatementType.DRA
-            stmt.period_start_date = dra.period_start_date
-            stmt.period_end_date   = dra.period_end_date
-            stmts.append(stmt)
-
-        if dfc is not None:
-            stmt = makeStatement(dfc)
-            stmt.statement_type    = cvm.StatementType.DFC
-            stmt.period_start_date = dfc.period_start_date
-            stmt.period_end_date   = dfc.period_end_date
-            stmts.append(stmt)
-
-        # TODO: DMPL
-
-        if dva is not None:
-            stmt = makeStatement(dva)
-            stmt.statement_type    = cvm.StatementType.DVA
-            stmt.period_start_date = dva.period_start_date
-            stmt.period_end_date   = dva.period_end_date
-            stmts.append(stmt)
+            if cvm_stmt is not None:
+                stmt = Statement.fromCVM(collection.balance_type, stmt_type, cvm_stmt.normalized())
+                stmts.append(stmt)
 
         return stmts
+
+    @staticmethod
+    def fromCVM(balance_type: cvm.BalanceType, statement_type: cvm.StatementType, cvm_statement: cvm.Statement) -> Statement:
+        stmt = Statement(
+            balance_type      = balance_type,
+            statement_type    = statement_type,
+            period_start_date = getattr(cvm_statement, 'period_start_date', None),
+            period_end_date   = getattr(cvm_statement, 'period_end_date',   None),
+            accounts          = []
+        )
+
+        if isinstance(cvm_statement, cvm.DMPL):
+            account_cls = DMPLAccount
+        else:
+            account_cls = Account
+
+        for cvm_account in cvm_statement.accounts:
+            account = account_cls(**dataclasses.asdict(cvm_account))
+            
+            stmt.accounts.append(account)
+
+        return stmt
+
+    @staticmethod
+    def find(document_id: int,
+             statement_type: cvm.StatementType,
+             balance_type: cvm.BalanceType
+    ) -> typing.List[Statement]:
+        
+        S: Statement = sa_orm.aliased(Statement, name='s')
+
+        select_stmt = (
+            sa.select(S)
+              .select_from(S)
+              .where(S.document_id    == document_id)
+              .where(S.statement_type == statement_type)
+              .where(S.balance_type   == balance_type)
+        )
+
+        session = database.Session()
+        result  = session.execute(select_stmt).all()
+
+        return list(row[0] for row in result)
 
 @database.mapper_registry.mapped
 @dataclasses.dataclass
@@ -333,23 +346,63 @@ class BalanceSheet(cvm.BalanceSheet):
         }
     }
 
-class Account(models.Base):
-    __tablename__ = 'account'
+@database.mapper_registry.mapped
+@dataclasses.dataclass
+class BaseAccount(cvm.BaseAccount):
+    __table__ = sa.Table(
+        'base_account',
+        models.Base.metadata,
+        sa.Column('id',           sa.Integer,     primary_key=True, autoincrement=True),
+        sa.Column('statement_id', sa.Integer,     sa.ForeignKey('statement.id')),
+        sa.Column('code',         sa.String(18),  nullable=False),
+        sa.Column('name',         sa.String(100), nullable=False),
+        sa.Column('is_fixed',     sa.Boolean,     nullable=False),
+        sa.Column('type',         sa.String(10),  nullable=False)
+    )
 
-    id           = sa.Column(sa.Integer,     primary_key=True, autoincrement=True)
-    statement_id = sa.Column(sa.Integer,     sa.ForeignKey('statement.id'))
-    code         = sa.Column(sa.String(18),  nullable=False)
-    name         = sa.Column(sa.String(100), nullable=False)
-    quantity     = sa.Column(sa.Integer,     nullable=False)
-    is_fixed     = sa.Column(sa.Boolean,     nullable=False)
+    id: int              = dataclasses.field(init=False)
+    statement_id: int    = dataclasses.field(init=False)
+    statement: Statement = dataclasses.field(init=False)
+    
+    __mapper_args__ = {
+        'polymorphic_on': 'type',
+        'polymorphic_identity': 'base_account',
+        'properties': {
+            'statement': sa_orm.relationship('Statement', back_populates='accounts', uselist=False)
+        }
+    }
 
-    statement: Statement = sa_orm.relationship('Statement', back_populates='accounts', uselist=False)
+@database.mapper_registry.mapped
+@dataclasses.dataclass
+class Account(BaseAccount, cvm.Account):
+    __table__ = sa.Table(
+        'account',
+        models.Base.metadata,
+        sa.Column('id',       sa.Integer, sa.ForeignKey('base_account.id'), primary_key=True),
+        sa.Column('quantity', sa.Integer, nullable=False),
+    )
 
-    @staticmethod
-    def fromCVM(account: cvm.Account):
-        return Account(
-            code     = account.code,
-            name     = account.name,
-            quantity = int(account.quantity),
-            is_fixed = account.is_fixed
-        )
+    __mapper_args__ = {
+        'polymorphic_identity': 'account',
+    }
+
+@database.mapper_registry.mapped
+@dataclasses.dataclass
+class DMPLAccount(BaseAccount, cvm.DMPLAccount):
+    __table__ = sa.Table(
+        'dmpl_account',
+        models.Base.metadata,
+        sa.Column('id',                                  sa.Integer, sa.ForeignKey('base_account.id'), primary_key=True),
+        sa.Column('share_capital',                       sa.Integer, nullable=False),
+        sa.Column('capital_reserve_and_treasury_shares', sa.Integer, nullable=False),
+        sa.Column('profit_reserves',                     sa.Integer, nullable=False),
+        sa.Column('unappropriated_retained_earnings',    sa.Integer, nullable=False),
+        sa.Column('other_comprehensive_income',          sa.Integer, nullable=False),
+        sa.Column('controlling_interest',                sa.Integer, nullable=False),
+        sa.Column('non_controlling_interest',            sa.Integer, nullable=True),
+        sa.Column('consolidated_equity',                 sa.Integer, nullable=True),
+    )
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'dmpl_account',
+    }

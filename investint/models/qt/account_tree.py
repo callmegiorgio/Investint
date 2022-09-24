@@ -49,7 +49,7 @@ class AccountTreeItem:
     def name(self) -> str:
         return self._name
 
-    def quantities(self) -> typing.List[int]:
+    def quantities(self) -> typing.List[typing.Optional[int]]:
         return self._quantities.copy()
 
     def level(self) -> int:
@@ -84,8 +84,11 @@ class AccountTreeItem:
 
     def hasChildren(self) -> bool:
         return self.childCount() != 0
+
+    def children(self) -> typing.List[AccountTreeItem]:
+        return self._children.copy()
     
-    def appendQuantity(self, quantity: int):
+    def appendQuantity(self, quantity: typing.Optional[int]):
         self._quantities.append(quantity)
 
     def _appendChild(self, child: AccountTreeItem):
@@ -114,10 +117,9 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None):
         super().__init__(parent=parent)
 
-        self._root_item = AccountTreeItem('', '')
-        self._account_items = {}
-        self._period_dates = []
-        self._header_texts = ['', '']
+        self._header_texts        = ['', '']
+        self._root_item           = AccountTreeItem('', '')
+        self._numeric_column_data = []
 
         self.retranslateUi()
 
@@ -127,114 +129,102 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
 
         self.beginResetModel()
         self._root_item = AccountTreeItem('', '')
-        self._account_items.clear()
-        self._period_dates.clear()
+        self._numeric_column_data.clear()
         self.endResetModel()
 
-    def select(self,
-               cnpj: str,
-               reference_date: datetime.date,
-               document_type: cvm.datatypes.DocumentType,
-               statement_type: cvm.datatypes.StatementType,
-               balance_type: cvm.datatypes.BalanceType
-    ) -> None:
-        A: models.Account       = sa_orm.aliased(models.Account,       name='a')
-        S: models.Statement     = sa_orm.aliased(models.Statement,     name='s')
-        D: models.Document      = sa_orm.aliased(models.Document,      name='d')
-        C: models.PublicCompany = sa_orm.aliased(models.PublicCompany, name='c')
+    def setNumericColumnCount(self, count: int) -> None:
+        current_count = self.numericColumnCount()
 
-        stmt = (
-            sa.select(A, S.period_end_date)
-              .select_from(A)
-              .join(S, A.statement_id == S.id)
-              .join(D, S.document_id  == D.id)
-              .join(C, D.company_id   == C.id)
-              .where(C.cnpj           == cnpj)
-              .where(D.reference_date == reference_date)
-              .where(D.type           == document_type)
-              .where(S.statement_type == statement_type)
-              .where(S.balance_type   == balance_type)
-        )
+        if count < current_count:
+            static_count = self.staticColumnCount()
 
-        session = database.Session()
-        results = session.execute(stmt).all()
+            self.beginRemoveColumns(QtCore.QModelIndex(), static_count + count, static_count + current_count - 1)
+            self._numeric_column_data = self._numeric_column_data[:count]
+            self.endRemoveColumns()
 
-        accounts   = {}
-        quantities = collections.defaultdict(dict)
+        elif count > current_count:
+            static_count = self.staticColumnCount()
 
-        for row in results:
-            account, period_end_date = row
+            self.beginInsertColumns(QtCore.QModelIndex(), static_count + current_count, static_count + count - 1)
+            self._numeric_column_data += [None] * (count - current_count)
+            self.endInsertColumns()
 
-            accounts[account.code] = account
-            quantities[period_end_date][account.code] = account.quantity
+    def setNumericColumnData(self, column: int, data: typing.Any) -> None:
+        self._numeric_column_data[column] = data
+        self.headerDataChanged.emit(Qt.Orientation.Horizontal, column, column)
 
-        self.selectAccounts(accounts.values())
+    def numericColumnCount(self) -> int:
+        return len(self._numeric_column_data)
 
-        for period_end_date, quantities in quantities.items():
-            self.appendQuantity(period_end_date, quantities)
+    def numericColumnData(self, column: int) -> typing.Any:
+        return self._numeric_column_data[column]
 
-    def selectAccounts(self, accounts: typing.Iterable[models.Account]) -> None:
-        parent_items = {}
-        unparented_children = collections.defaultdict(list)
+    def numericColumnText(self, column: int) -> str:
+        try:
+            return str(self.numericColumnData(column))
+        except ValueError:
+            return ''
+
+    def append(self, code: str, name: str, quantities: typing.Dict[typing.Any, int]):
+        row_count = self.rowCount()
+
+        self.beginInsertRows(QtCore.QModelIndex(), row_count, row_count)
+
+        account_item = AccountTreeItem(code, name)
+
+        for column in range(self.numericColumnCount()):
+            column_data = self.numericColumnData(column)
+
+            try:
+                quantity = int(quantities[column_data])
+            except (KeyError, ValueError, TypeError):
+                quantity = None
+            
+            account_item.appendQuantity(quantity)
+
+        self._root_item._appendChild(account_item)
+        self.endInsertRows()
+
+    def staticColumnCount(self) -> int:
+        return len(AccountTreeModel.Column)
+
+    def buildTree(self) -> None:
+        if not self._root_item.hasChildren():
+            return
 
         self.beginResetModel()
 
+        items_by_code  = {}
+        codes_by_level = collections.defaultdict(list)
+        
+        for item in self._root_item.children():
+            code = item.code()
+            
+            items_by_code[code] = item
+            codes_by_level[item.level()].append(code)
+
         self._root_item = AccountTreeItem('', '')
-        self._account_items.clear()
-        self._period_dates.clear()
+        current_level   = 1
 
-        for account in accounts:            
-            account_item = AccountTreeItem(account.code, account.name)
-
-            if account_item.level() == 1:
-                # Got top-level account.
-                parent_item = self._root_item
-            else:
-                try:
-                    # Try getting the account's parent item, if we have already created it.
-                    parent_item = parent_items[account_item.parentCode()] 
-                except KeyError:
-                    # models.Account has a parent, but we have not created its parent item yet.
-                    parent_item = None
-            
-            if parent_item:
-                parent_item._appendChild(account_item)
-            else:
-                # A parent item doesn't exist yet for the child, but it's possible that
-                # such a parent will be read later while iterating through `results`,
-                # so store the child and try getting the parent later.
-                unparented_children[account_item.parentCode()].append(account_item)
-
-            # This child item itself may be a parent of other children, so store it
-            # for later lookup.
-            parent_items[account_item.code()] = account_item
-            self._account_items[account.code] = account_item
-
-        while len(unparented_children) != 0:
-            parent_code, children = unparented_children.popitem()
-
+        while len(codes_by_level) > 0:
             try:
-                parent_item = parent_items.pop(parent_code)
+                codes: typing.List[str] = codes_by_level.pop(current_level)
             except KeyError:
-                parent_item = self._root_item
-            
-            parent_item._appendChildren(children)
+                pass
+            else:
+                for code in codes:
+                    item: AccountTreeItem = items_by_code[code]
+
+                    parent_code = item.parentCode()
+                    parent_item = items_by_code.get(parent_code, self._root_item)
+                    parent_item._appendChild(item)
+            finally:
+                current_level += 1
 
         self._root_item._sort()
 
         self.endResetModel()
-
-    def appendQuantity(self, period_date: datetime.date, mapped_quantity: typing.Dict[str, int]):
-        self.beginResetModel()
-
-        for account_code, account_item in self._account_items.items():
-            quantity = mapped_quantity[account_code]
-            account_item.appendQuantity(quantity)
-
-        self._period_dates.append(period_date)
-
-        self.endResetModel()
-
+   
     def setHeaderText(self, column: int, text: str) -> None:
         Column = AccountTreeModel.Column
 
@@ -248,7 +238,7 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
         if column < len(Column):
             return self._header_texts[column]
         else:
-            return str(self._period_dates[column - len(Column)])
+            return self.numericColumnText(column - len(Column))
 
     def headerTextAlignment(self, column: int) -> Qt.Alignment:
         Column = AccountTreeModel.Column
@@ -273,10 +263,12 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
             if   column == Column.Code: return item.code()
             elif column == Column.Name: return item.name()
         else:
+            quantities = item.quantities()
+
             try:
-                quantity = item.quantities()[column - len(Column)]
-            except IndexError:
-                pass
+                quantity = int(quantities[column - len(Column)])
+            except (IndexError, TypeError):
+                return ''
             else:
                 return QtCore.QLocale().toCurrencyString(quantity)
 
@@ -292,13 +284,8 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
             return Qt.AlignmentFlag.AlignRight
 
     def retranslateUi(self) -> None:
-        header_texts = (
-            AccountTreeModel.tr('Code'),
-            AccountTreeModel.tr('Name')
-        )
-
-        for column, text in enumerate(header_texts):
-            self.setHeaderText(column, text)
+        self.setHeaderText(0, AccountTreeModel.tr('Code'))
+        self.setHeaderText(1, AccountTreeModel.tr('Name'))
 
     ################################################################################
     # Overriden methods
@@ -367,4 +354,4 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
         return parent_item.childCount()
 
     def columnCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> int:
-        return len(AccountTreeModel.Column) + len(self._period_dates)
+        return self.staticColumnCount() + self.numericColumnCount()
