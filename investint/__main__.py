@@ -1,4 +1,3 @@
-import os
 import sqlalchemy.exc as sa_exc
 import sys
 from PyQt5     import QtCore, QtWidgets
