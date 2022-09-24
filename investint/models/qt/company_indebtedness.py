@@ -1,5 +1,5 @@
 import cvm
-import icvm
+import ibr
 import typing
 from PyQt5     import QtCore
 from investint import models
@@ -40,4 +40,4 @@ class CompanyIndebtednessModel(models.CompanyIndicatorModel):
     # Overriden methods
     ################################################################################
     def createIndicator(self, balance_sheet: cvm.balances.BalanceSheet, income_statement: cvm.balances.IncomeStatement) -> typing.Any:
-        return icvm.Indebtedness.from_statement(balance_sheet, income_statement)
+        return ibr.Indebtedness.from_statement(balance_sheet, income_statement)

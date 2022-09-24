@@ -1,5 +1,5 @@
 import cvm
-import icvm
+import ibr
 import typing
 from PyQt5     import QtCore
 from investint import models
@@ -37,4 +37,4 @@ class CompanyEfficiencyModel(models.CompanyIndicatorModel):
     # Overriden methods
     ################################################################################
     def createIndicator(self, balance_sheet: cvm.balances.BalanceSheet, income_statement: cvm.balances.IncomeStatement) -> typing.Any:
-        return icvm.Efficiency.from_statement(income_statement)
+        return ibr.Efficiency.from_statement(income_statement)
