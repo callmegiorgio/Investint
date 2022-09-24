@@ -241,12 +241,7 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
             return self.numericColumnText(column - len(Column))
 
     def headerTextAlignment(self, column: int) -> Qt.Alignment:
-        Column = AccountTreeModel.Column
-
-        if column < len(Column):
-            return Qt.AlignmentFlag.AlignLeft
-        else:
-            return Qt.AlignmentFlag.AlignCenter
+        return Qt.AlignmentFlag.AlignCenter
 
     def text(self, index: QtCore.QModelIndex) -> str:
         item: typing.Optional[AccountTreeItem] = index.internalPointer()
