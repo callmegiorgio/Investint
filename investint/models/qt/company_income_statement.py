@@ -2,14 +2,15 @@ import cvm
 import datetime
 import sqlalchemy as sa
 import typing
-from PyQt5     import QtCore
-from investint import models
+from PyQt5                import QtCore
+from investint.models.sql import IncomeStatement, PublicCompany, Document
+from investint.models.qt  import CompanyStatementModel
 
 __all__ = [
     'CompanyIncomeStatementModel'
 ]
 
-class CompanyIncomeStatementModel(models.CompanyStatementModel):
+class CompanyIncomeStatementModel(CompanyStatementModel):
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
         mapped_row_names = [
             'revenue',
@@ -58,9 +59,9 @@ class CompanyIncomeStatementModel(models.CompanyStatementModel):
                         document_type: cvm.datatypes.DocumentType
     ) -> sa.select:
 
-        I = models.IncomeStatement
-        C = models.PublicCompany
-        D = models.Document
+        I = IncomeStatement
+        C = PublicCompany
+        D = Document
 
         return (
             sa.select(D.reference_date, I)

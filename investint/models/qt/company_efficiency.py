@@ -1,14 +1,14 @@
 import cvm
 import ibr
 import typing
-from PyQt5     import QtCore
-from investint import models
+from PyQt5               import QtCore
+from investint.models.qt import CompanyIndicatorModel
 
 __all__ = [
     'CompanyEfficiencyModel'
 ]
 
-class CompanyEfficiencyModel(models.CompanyIndicatorModel):
+class CompanyEfficiencyModel(CompanyIndicatorModel):
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
         mapped_row_names = [
             'gross_margin',

@@ -11,22 +11,8 @@ end with "model":
 - Qt model: `CompanyStatementModel`, `AccountTreeModel`, ...
 """
 
-from investint.models.sql.base                    import *
-from investint.models.sql.cvm                     import *
-from investint.models.sql.b3                      import *
-from investint.models.qt.reversible_proxy         import *
-from investint.models.qt.account_tree             import *
-from investint.models.qt.comparative_account_tree import *
-from investint.models.qt.dmpl_account_tree        import *
-from investint.models.qt.breakdown_table          import *
-from investint.models.qt.mapped_breakdown_table   import *
-from investint.models.qt.company_statement        import *
-from investint.models.qt.company_income_statement import *
-from investint.models.qt.company_balance_sheet    import *
-from investint.models.qt.company_indicator        import *
-from investint.models.qt.company_indebtedness     import *
-from investint.models.qt.company_efficiency       import *
-from investint.models.qt.company_profitability    import *
+from investint.models.sql import *
+from investint.models.qt  import *
 
 # Make sure everything is mapped upon execution of the application.
 import sqlalchemy.orm as sa_orm

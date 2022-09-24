@@ -1,7 +1,7 @@
 import sqlalchemy     as sa
 import sqlalchemy.orm as sa_orm
 import b3
-from investint import models
+from investint.models.sql import Base, PublicCompany
 
 __all__ = [
     'ListedCompany',
@@ -9,7 +9,7 @@ __all__ = [
     'Quote'
 ]
 
-class ListedCompany(models.PublicCompany):
+class ListedCompany(PublicCompany):
     __tablename__ = 'listed_company'
 
     id       = sa.Column(sa.Integer,     sa.ForeignKey('public_company.id'), primary_key=True)
@@ -23,7 +23,7 @@ class ListedCompany(models.PublicCompany):
         'polymorphic_identity': True
     }
 
-class Instrument(models.Base):
+class Instrument(Base):
     __tablename__ = 'instrument'
 
     id                = sa.Column(sa.Integer,     primary_key=True, autoincrement=True)
@@ -34,7 +34,7 @@ class Instrument(models.Base):
     company = sa_orm.relationship('ListedCompany', back_populates='instruments', uselist=False)
     quotes  = sa_orm.relationship('Quote',         back_populates='instrument',  uselist=True)
 
-class Quote(models.Base):
+class Quote(Base):
     __tablename__ = 'quote'
 
     id            = sa.Column(sa.Integer,        primary_key=True, autoincrement=True)

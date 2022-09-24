@@ -4,8 +4,9 @@ import datetime
 import enum
 import typing
 import sqlalchemy as sa
-from PyQt5     import QtCore
-from investint import database, models
+from PyQt5               import QtCore
+from investint           import database
+from investint.models.qt import MappedBreakdownTableModel
 
 __all__ = [
     'CompanyStatementModel',
@@ -20,7 +21,7 @@ class CompanyStatementPeriod(enum.IntEnum):
     Quarter3  = 4
     Quarter4  = 5
 
-class CompanyStatementModel(models.MappedBreakdownTableModel):
+class CompanyStatementModel(MappedBreakdownTableModel):
     def __init__(self, mapped_row_names: typing.Dict[str, str], parent: typing.Optional[QtCore.QObject] = None) -> None:
         super().__init__(mapped_row_names=mapped_row_names, parent=parent)
 

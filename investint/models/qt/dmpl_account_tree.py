@@ -4,13 +4,15 @@ import sqlalchemy     as sa
 import sqlalchemy.orm as sa_orm
 import typing
 from PyQt5     import QtCore
-from investint import database, models
+from investint import database
+from investint.models.sql import Statement, DMPLAccount
+from investint.models.qt  import AccountTreeModel
 
 __all__ = [
     'DMPLAccountTreeModel'
 ]
 
-class DMPLAccountTreeModel(models.AccountTreeModel):
+class DMPLAccountTreeModel(AccountTreeModel):
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None):
         super().__init__(parent=parent)
 
@@ -27,13 +29,13 @@ class DMPLAccountTreeModel(models.AccountTreeModel):
 
         self.retranslateUi()
 
-    def select(self, statement: models.Statement) -> None:
+    def select(self, statement: Statement) -> None:
         self.clear()
 
         if statement.statement_type != cvm.StatementType.DMPL:
             return
 
-        A: models.DMPLAccount = sa_orm.aliased(models.DMPLAccount, name='a')
+        A: DMPLAccount = sa_orm.aliased(DMPLAccount, name='a')
 
         select_stmt = sa.select(A).where(A.statement_id == statement.id)
         session     = database.Session()
@@ -50,7 +52,7 @@ class DMPLAccountTreeModel(models.AccountTreeModel):
             self.setNumericColumnData(column, column_data)
 
         for row in results:
-            account: models.DMPLAccount = row[0]
+            account: DMPLAccount = row[0]
             quantities = dataclasses.asdict(account)
 
             self.append(account.code, account.name, quantities)

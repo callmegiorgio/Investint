@@ -5,7 +5,8 @@ import datetime
 import typing
 import sqlalchemy     as sa
 import sqlalchemy.orm as sa_orm
-from investint import database, models
+from investint            import database
+from investint.models.sql import Base
 
 def _enumByValue(enum_type: typing.Type[cvm.DescriptiveIntEnum]):
     return [str(e.value) for e in enum_type]
@@ -24,7 +25,7 @@ __all__ = [
     'BalanceSheet'
 ]
 
-class PublicCompany(models.Base):
+class PublicCompany(Base):
     __tablename__ = 'public_company'
 
     id                         = sa.Column(sa.Integer,     primary_key=True, autoincrement=True)
@@ -128,7 +129,7 @@ class PublicCompany(models.Base):
             website                    = fca.issuer_company.webpage
         )
 
-class Document(models.Base):
+class Document(Base):
     __tablename__ = 'document'
 
     id             = sa.Column(sa.Integer,                primary_key=True, autoincrement=False)
@@ -209,7 +210,7 @@ class Document(models.Base):
         
         return row[0]
 
-class Statement(models.Base):
+class Statement(Base):
     __tablename__ = 'statement'
 
     id                = sa.Column(sa.Integer,                 primary_key=True, autoincrement=True)
@@ -283,7 +284,7 @@ class Statement(models.Base):
 class IncomeStatement(cvm.IncomeStatement):
     __table__ = sa.Table(
         'income_statement',
-        models.Base.metadata,
+        Base.metadata,
         sa.Column('id',                            sa.Integer, primary_key=True, autoincrement=True),
         sa.Column('document_id',                   sa.Integer, sa.ForeignKey('document.id'), nullable=False),
         sa.Column('revenue',                       sa.Integer, nullable=False),
@@ -316,7 +317,7 @@ class IncomeStatement(cvm.IncomeStatement):
 class BalanceSheet(cvm.BalanceSheet):
     __table__ = sa.Table(
         'balance_sheet',
-        models.Base.metadata,
+        Base.metadata,
         sa.Column('id',                             sa.Integer, primary_key=True, autoincrement=True),
         sa.Column('document_id',                    sa.Integer, sa.ForeignKey('document.id'), nullable=False),
         sa.Column('total_assets',                   sa.Integer, nullable=False),
@@ -351,7 +352,7 @@ class BalanceSheet(cvm.BalanceSheet):
 class BaseAccount(cvm.BaseAccount):
     __table__ = sa.Table(
         'base_account',
-        models.Base.metadata,
+        Base.metadata,
         sa.Column('id',           sa.Integer,     primary_key=True, autoincrement=True),
         sa.Column('statement_id', sa.Integer,     sa.ForeignKey('statement.id')),
         sa.Column('code',         sa.String(18),  nullable=False),
@@ -377,7 +378,7 @@ class BaseAccount(cvm.BaseAccount):
 class Account(BaseAccount, cvm.Account):
     __table__ = sa.Table(
         'account',
-        models.Base.metadata,
+        Base.metadata,
         sa.Column('id',       sa.Integer, sa.ForeignKey('base_account.id'), primary_key=True),
         sa.Column('quantity', sa.Integer, nullable=False),
     )
@@ -391,7 +392,7 @@ class Account(BaseAccount, cvm.Account):
 class DMPLAccount(BaseAccount, cvm.DMPLAccount):
     __table__ = sa.Table(
         'dmpl_account',
-        models.Base.metadata,
+        Base.metadata,
         sa.Column('id',                                  sa.Integer, sa.ForeignKey('base_account.id'), primary_key=True),
         sa.Column('share_capital',                       sa.Integer, nullable=False),
         sa.Column('capital_reserve_and_treasury_shares', sa.Integer, nullable=False),

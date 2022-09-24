@@ -1,12 +1,13 @@
 import typing
-from PyQt5     import QtCore, QtWidgets
-from investint import importing, widgets
+from PyQt5                       import QtCore, QtWidgets
+from investint.importing         import Worker, DfpItrWorker
+from investint.widgets.importing import ImportingWindow, ImportingSelectionDialog
 
 __all__ = [
     'ImportingDfpItrWindow'
 ]
 
-class ImportingDfpItrWindow(widgets.ImportingWindow):
+class ImportingDfpItrWindow(ImportingWindow):
     @staticmethod
     def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:
         return QtCore.QCoreApplication.translate('ImportingDfpItrWindow', source_text, disambiguation, n)
@@ -24,10 +25,10 @@ class ImportingDfpItrWindow(widgets.ImportingWindow):
     ################################################################################
     # Overriden methods
     ################################################################################
-    def createWorker(self, filepath: str) -> importing.Worker:
+    def createWorker(self, filepath: str) -> Worker:
         listed_cnpjs = (co.cnpj for co in self._companies)
 
-        return importing.DfpItrWorker(listed_cnpjs, filepath)
+        return DfpItrWorker(listed_cnpjs, filepath)
 
     def retranslateUi(self):
         super().retranslateUi()
@@ -40,7 +41,7 @@ class ImportingDfpItrWindow(widgets.ImportingWindow):
     ################################################################################
     @QtCore.pyqtSlot()
     def _onSettingsButtonClicked(self):
-        dialog = widgets.ImportingSelectionDialog(self)
+        dialog = ImportingSelectionDialog(self)
         dialog.setCompanies(self._companies)
         
         if dialog.exec():

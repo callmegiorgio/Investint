@@ -4,27 +4,29 @@ import dataclasses
 import sqlalchemy     as sa
 import sqlalchemy.orm as sa_orm
 import typing
-from PyQt5     import QtCore
-from investint import database, models
+from PyQt5                import QtCore
+from investint.database   import Session
+from investint.models.sql import Document, IncomeStatement, BalanceSheet
+from investint.models.qt  import MappedBreakdownTableModel, CompanyStatementPeriod
 
 __all__ = [
     'CompanyIndicatorModel'
 ]
 
-class CompanyIndicatorModel(models.MappedBreakdownTableModel):
+class CompanyIndicatorModel(MappedBreakdownTableModel):
     def __init__(self, mapped_row_names: typing.Dict[str, str], parent: typing.Optional[QtCore.QObject] = None) -> None:
         super().__init__(mapped_row_names, parent)
 
         self._percent_rows = set()
         self._decimals     = 2
-        self._period       = models.CompanyStatementPeriod.Annual
+        self._period       = CompanyStatementPeriod.Annual
 
-    def select(self, company_id: int, period: models.CompanyStatementPeriod) -> None:
-        D: models.Document        = sa_orm.aliased(models.Document,        name='d')
-        I: models.IncomeStatement = sa_orm.aliased(models.IncomeStatement, name='i')
-        B: models.BalanceSheet    = sa_orm.aliased(models.BalanceSheet,    name='b')
+    def select(self, company_id: int, period: CompanyStatementPeriod) -> None:
+        D: Document        = sa_orm.aliased(Document,        name='d')
+        I: IncomeStatement = sa_orm.aliased(IncomeStatement, name='i')
+        B: BalanceSheet    = sa_orm.aliased(BalanceSheet,    name='b')
         
-        if period == models.CompanyStatementPeriod.Annual:
+        if period == CompanyStatementPeriod.Annual:
             document_type = cvm.datatypes.DocumentType.DFP
         else:
             document_type = cvm.datatypes.DocumentType.ITR
@@ -39,7 +41,7 @@ class CompanyIndicatorModel(models.MappedBreakdownTableModel):
               .order_by(D.reference_date.asc())
         )
 
-        session = database.Session()
+        session = Session()
         result  = session.execute(select_stmt)
 
         self.clear()
@@ -121,7 +123,7 @@ class CompanyIndicatorModel(models.MappedBreakdownTableModel):
         if not isinstance(reference_date, datetime.date):
             return '?'
 
-        if self._period == models.CompanyStatementPeriod.Annual:
+        if self._period == CompanyStatementPeriod.Annual:
             return str(reference_date.year)
         else:
             quarter = int(reference_date.month / 3)

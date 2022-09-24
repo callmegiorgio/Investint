@@ -1,12 +1,13 @@
 import typing
 from PyQt5     import QtCore, QtWidgets
-from investint import importing, widgets
+from investint.importing         import Worker, FcaWorker
+from investint.widgets.importing import ImportingWindow
 
 __all__ = [
     'ImportingFcaWindow'
 ]
 
-class ImportingFcaWindow(widgets.ImportingWindow):
+class ImportingFcaWindow(ImportingWindow):
     @staticmethod
     def tr(source_text, disambiguation: typing.Optional[str] = None, n: int = -1) -> str:
         return QtCore.QCoreApplication.translate('ImportingFcaWindow', source_text, disambiguation, n)
@@ -22,8 +23,8 @@ class ImportingFcaWindow(widgets.ImportingWindow):
     ################################################################################
     # Overriden methods
     ################################################################################
-    def createWorker(self, filepath: str) -> importing.Worker:
-        return importing.FcaWorker(filepath)
+    def createWorker(self, filepath: str) -> Worker:
+        return FcaWorker(filepath)
 
     def retranslateUi(self):
         super().retranslateUi()

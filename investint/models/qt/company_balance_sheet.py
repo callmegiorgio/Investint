@@ -2,14 +2,15 @@ import cvm
 import datetime
 import sqlalchemy as sa
 import typing
-from PyQt5     import QtCore
-from investint import models
+from PyQt5                import QtCore
+from investint.models.sql import BalanceSheet, PublicCompany, Document
+from investint.models.qt  import CompanyStatementModel
 
 __all__ = [
     'CompanyBalanceSheetModel'
 ]
 
-class CompanyBalanceSheetModel(models.CompanyStatementModel):
+class CompanyBalanceSheetModel(CompanyStatementModel):
     ################################################################################
     # Initialization
     ################################################################################
@@ -66,9 +67,9 @@ class CompanyBalanceSheetModel(models.CompanyStatementModel):
                         document_type: cvm.datatypes.DocumentType
     ) -> sa.select:
 
-        B = models.BalanceSheet
-        C = models.PublicCompany
-        D = models.Document
+        B = BalanceSheet
+        C = PublicCompany
+        D = Document
 
         return (
             sa.select(D.reference_date, B)

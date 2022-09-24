@@ -1,7 +1,7 @@
 import sqlalchemy.exc as sa_exc
 import sys
 from PyQt5     import QtCore, QtWidgets
-from investint import database, resources, widgets
+from investint import database, widgets
 
 def createFileEngine(file_path: str):
     try:

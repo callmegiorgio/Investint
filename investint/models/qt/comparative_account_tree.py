@@ -3,13 +3,15 @@ import cvm
 import datetime
 import sqlalchemy     as sa
 import sqlalchemy.orm as sa_orm
-from investint import database, models
+from investint            import database
+from investint.models.sql import Account, Statement, Document, PublicCompany
+from investint.models.qt  import AccountTreeModel
 
 __all__ = [
     'ComparativeAccountTreeModel'
 ]
 
-class ComparativeAccountTreeModel(models.AccountTreeModel):
+class ComparativeAccountTreeModel(AccountTreeModel):
     def select(self,
                cnpj: str,
                reference_date: datetime.date,
@@ -19,10 +21,10 @@ class ComparativeAccountTreeModel(models.AccountTreeModel):
     ) -> None:
         self.clear()
 
-        A: models.Account       = sa_orm.aliased(models.Account,       name='a')
-        S: models.Statement     = sa_orm.aliased(models.Statement,     name='s')
-        D: models.Document      = sa_orm.aliased(models.Document,      name='d')
-        C: models.PublicCompany = sa_orm.aliased(models.PublicCompany, name='c')
+        A: Account       = sa_orm.aliased(Account,       name='a')
+        S: Statement     = sa_orm.aliased(Statement,     name='s')
+        D: Document      = sa_orm.aliased(Document,      name='d')
+        C: PublicCompany = sa_orm.aliased(PublicCompany, name='c')
 
         stmt = (
             sa.select(A, S.period_end_date)
@@ -45,7 +47,7 @@ class ComparativeAccountTreeModel(models.AccountTreeModel):
         period_end_dates   = set()
 
         for row in results:
-            account: models.Account        = row[0]
+            account: Account               = row[0]
             period_end_date: datetime.date = row[1]
 
             period_end_dates.add(period_end_date)
