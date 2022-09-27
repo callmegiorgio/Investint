@@ -1,0 +1,1 @@
+from investint.core.settings import *

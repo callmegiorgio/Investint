@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         self._engine: typing.Optional[sa.engine.Engine] = None
@@ -26,7 +26,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.loadSettings()
         self.retranslateUi()
 
-    def _initTranslators(self):
+    def _initTranslators(self) -> None:
         app = QtWidgets.QApplication.instance()
 
         # TODO: maybe move it to somewhere else?
@@ -37,17 +37,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         app.installTranslator(self._app_translator)
 
-    def _initWidgets(self):
+    def _initWidgets(self) -> None:
         self._company_widget = widgets.CompanyWidget()
 
         self.setWindowIcon(fugue.icon('application'))
         self.setCentralWidget(self._company_widget)
 
-    def _initActions(self):
+    def _initActions(self) -> None:
         self._initFileMenuActions()
+        self._initEditMenuActions()
         self._initHelpMenuActions()
 
-    def _initFileMenuActions(self):
+    def _initFileMenuActions(self) -> None:
         self._new_db_file_action = QtWidgets.QAction()
         self._new_db_file_action.setIcon(fugue.icon('database--plus'))
         self._new_db_file_action.setShortcut('Ctrl+N')
@@ -86,22 +87,29 @@ class MainWindow(QtWidgets.QMainWindow):
         self._exit_action.setShortcut('Ctrl+Q')
         self._exit_action.triggered.connect(QtCore.QCoreApplication.quit)
     
-    def _initHelpMenuActions(self):
+    def _initEditMenuActions(self) -> None:
+        self._edit_preferences_action = QtWidgets.QAction()
+        self._edit_preferences_action.setIcon(fugue.icon('gear'))
+        self._edit_preferences_action.triggered.connect(self.showPreferencesWindow)
+
+    def _initHelpMenuActions(self) -> None:
         self._about_action = QtWidgets.QAction()
         self._about_action.setIcon(fugue.icon('information'))
         self._about_action.triggered.connect(self.showAbout)
 
-    def _initMenus(self):
+    def _initMenus(self) -> None:
         self._initFileMenu()
+        self._initEditMenu()
         self._initLangMenu()
         self._initHelpMenu()
 
         menu_bar = self.menuBar()
         menu_bar.addMenu(self._file_menu)
+        menu_bar.addMenu(self._edit_menu)
         menu_bar.addMenu(self._lang_menu)
         menu_bar.addMenu(self._help_menu)
     
-    def _initFileMenu(self):
+    def _initFileMenu(self) -> None:
         self._open_recently_menu = QtWidgets.QMenu()
 
         self._import_menu = QtWidgets.QMenu()
@@ -121,7 +129,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self._file_menu.addSeparator()
         self._file_menu.addAction(self._exit_action)
 
-    def _initLangMenu(self):
+    def _initEditMenu(self) -> None:
+        self._edit_menu = QtWidgets.QMenu()
+        self._edit_menu.addAction(self._edit_preferences_action)
+
+    def _initLangMenu(self) -> None:
         translations_dir       = QtCore.QDir(self._translations_path)
         translation_file_names = translations_dir.entryList(['*.qm'])
 
@@ -190,6 +202,10 @@ class MainWindow(QtWidgets.QMainWindow):
         if dialog.exec():
             engine = database.createEngineFromUrl(dialog.url())
             self.setEngine(engine)
+
+    def showPreferencesWindow(self):
+        win = widgets.PreferencesWindow(self)
+        win.show()
 
     def showAbout(self):
         versions = _version.get_versions()
@@ -347,6 +363,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._import_dfpitr_action.setText(self.tr('Statements from DFP/ITR...'))
         self._import_dfpitr_action.setStatusTip(self.tr("Import statements from a DFP or ITR file taken from CVM's Data Portal"))
+
+        #===========================================================
+        # Menu: Edit
+        #===========================================================
+        self._edit_menu.setTitle(self.tr('&Edit'))
+        
+        self._edit_preferences_action.setText(self.tr('Preferences'))
+        self._edit_preferences_action.setStatusTip(self.tr('Edit preferences'))
 
         #===========================================================
         # Menu: Language
