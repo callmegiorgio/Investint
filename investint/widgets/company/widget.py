@@ -54,13 +54,13 @@ class CompanyWidget(QtWidgets.QWidget):
     def company(self) -> typing.Optional[models.PublicCompany]:
         return self._company_drop_down.currentCompany()
     
-    def refresh(self):
+    def refresh(self) -> None:
         co = self.company()
 
         if co is not None:
             self.setCompany(co)
 
-    def retranslateUi(self):
+    def retranslateUi(self) -> None:
         self._tab_widget.setTabText(0, self.tr('General Information'))
         self._tab_widget.setTabText(1, self.tr('Indicators'))
         self._tab_widget.setTabText(2, self.tr('Financials'))
