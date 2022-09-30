@@ -20,7 +20,7 @@ class CompanyDropDown(QtWidgets.QWidget):
         self._initLayouts()
         self.retranslateUi()
 
-        self._current_model_index = QtCore.QModelIndex()
+        self._company = None
 
     def _initWidgets(self):
         self._model = QtGui.QStandardItemModel()
@@ -76,16 +76,7 @@ class CompanyDropDown(QtWidgets.QWidget):
         self._edit.setText(source_index.data() or '')
 
     def currentCompany(self) -> typing.Optional[models.PublicCompany]:
-        # It seems it is not possible to use `self._completer.currentIndex()`,
-        # because it returns an index of a proxy model that has a broken
-        # implementation of `QAbstractProxyModel.mapToSource()`. There's
-        # no way to map it to the source model, so we can't know what
-        # current index is actually selected.
-        #
-        # Fortunatelly, for some reason, the mapping works when handling
-        # the signal `QCompleter.activated`, so we can use that to store
-        # the source model index. See `_onCompleterIndexActivated()`.
-        return self._current_model_index.data(QtCore.Qt.ItemDataRole.UserRole + 1)
+        return self._company
 
     def retranslateUi(self):
         self._edit.setPlaceholderText(self.tr('Name or CVM code...'))
@@ -111,7 +102,7 @@ class CompanyDropDown(QtWidgets.QWidget):
         
         for company in models.PublicCompany.findByExpression(text):
             name = company.corporate_name
-            cnpj = cvm.datatypes.CNPJ(company.cnpj)
+            cnpj = cvm.CNPJ(company.cnpj)
             item = QtGui.QStandardItem(f'{name} ({cnpj})')
             item.setData(company, QtCore.Qt.ItemDataRole.UserRole + 1)
 
@@ -121,11 +112,9 @@ class CompanyDropDown(QtWidgets.QWidget):
     def _onCompleterIndexActivated(self, proxy_index: QtCore.QModelIndex):
         # https://stackoverflow.com/questions/39294136/why-does-my-qstandarditemmodel-itemfromindex-method-return-none-index-invalid
         source_index = proxy_index.model().mapToSource(proxy_index)
-        company      = source_index.data(QtCore.Qt.ItemDataRole.UserRole + 1)
-
-        self._current_model_index = source_index
+        self._company = source_index.data(QtCore.Qt.ItemDataRole.UserRole + 1)
         
-        if company is None:
+        if self._company is None:
             return
         
-        self.companyChanged.emit(company)
+        self.companyChanged.emit(self._company)
