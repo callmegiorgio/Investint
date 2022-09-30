@@ -234,11 +234,12 @@ class ImportingWindow(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(type, BaseException, str)
     def _onWorkerError(self, exc_type: typing.Type[BaseException], exc_value: BaseException, exc_tb: str):
-        QtWidgets.QMessageBox.critical(
-            self,
-            exc_type.__name__,
-            str(exc_value) + '\n\n' + exc_tb
-        )
+        box = QtWidgets.QMessageBox(self)
+        box.setWindowTitle(self.tr('Importing Error'))
+        box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
+        box.setText(exc_type.__name__ + ': ' + str(exc_value))
+        box.setDetailedText(exc_tb)
+        box.exec()
 
         self._resetState()
         self.importingError.emit(exc_type, exc_value, exc_tb)
