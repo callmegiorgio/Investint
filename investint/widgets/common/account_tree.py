@@ -1,10 +1,83 @@
 import typing
-from PyQt5     import QtCore, QtWidgets
-from investint import models
+from PyQt5            import QtCore, QtGui, QtWidgets
+from investint.core   import Settings
+from investint.models import AccountTreeModel
 
 __all__ = [
     'AccountTreeWidget'
 ]
+
+class BranchItemDelegate(QtWidgets.QStyledItemDelegate):
+    def __init__(self, indentation: int, parent: typing.Optional[QtCore.QObject] = None) -> None:
+        super().__init__(parent=parent)
+
+        self._indent = indentation
+
+    def indentation(self) -> int:
+        return self._indent
+
+    def paint(self, painter: QtGui.QPainter, option: QtWidgets.QStyleOptionViewItem, index: QtCore.QModelIndex) -> None:
+        if index.column() == 0:
+            indent = self.indentation()
+
+            # Draw indicator branch (left rect)
+            branch_option = QtWidgets.QStyleOptionViewItem(option)
+            self.initStyleOption(branch_option, index)
+            branch_option.rect.setX(option.rect.x())
+            branch_option.rect.setWidth(indent)
+
+            widget = option.widget
+            style = widget.style() if widget else QtWidgets.QApplication.style()
+            style.drawPrimitive(QtWidgets.QStyle.PrimitiveElement.PE_IndicatorBranch, branch_option, painter, widget)
+
+            # Draw remaining contents of item (right rect)
+            item_option = QtWidgets.QStyleOptionViewItem(option)
+            self.initStyleOption(item_option, index)
+            item_option.rect.adjust(indent, 0, 0, 0)
+        else:
+            item_option = option
+
+        super().paint(painter, item_option, index)
+
+    def sizeHint(self, option: QtWidgets.QStyleOptionViewItem, index: QtCore.QModelIndex) -> QtCore.QSize:
+        """Reimplements `sizeHint()` so that indentation is account for when double-clicking the first column."""
+
+        size_hint = super().sizeHint(option, index)
+
+        if index.column() == 0:
+            size_hint.setWidth(size_hint.width() + self.indentation())
+        
+        return size_hint
+
+class BranchTreeView(QtWidgets.QTreeView):
+    def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
+        super().__init__(parent=parent)
+
+        self._default_delegate = self.itemDelegate()
+        self._branch_delegate = BranchItemDelegate(self.indentation())
+
+    def setIndentationEnabled(self, enabled: bool) -> None:
+        if self.isIndentationEnabled() == enabled:
+            return
+
+        if enabled:
+            self.setItemDelegate(self._default_delegate)
+            self.resetIndentation()
+        else:
+            self.setItemDelegate(self._branch_delegate)
+            self.setIndentation(0)
+    
+    def isIndentationEnabled(self) -> bool:
+        return self.indentation() != 0
+
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+        index      = self.indexAt(event.pos())
+        last_state = self.isExpanded(index)
+        
+        super().mousePressEvent(event)
+
+        if index.isValid() and last_state == self.isExpanded(index):
+            self.setExpanded(index, not last_state)
 
 class AccountTreeWidget(QtWidgets.QWidget):
     ################################################################################
@@ -17,11 +90,15 @@ class AccountTreeWidget(QtWidgets.QWidget):
         self._initLayouts()
     
     def _initWidgets(self):
-        self._view = QtWidgets.QTreeView()
+        appearance_settings = Settings.globalInstance().appearance()
+        
+        self._view = BranchTreeView()
+        self._view.setIndentationEnabled(appearance_settings.isAccountTreeIndented())
         self._view.header().setStretchLastSection(False)
         self._view.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Interactive)
+        appearance_settings.accountTreeIndentedChanged.connect(self._view.setIndentationEnabled)
 
-        self.setModel(models.AccountTreeModel())
+        self.setModel(AccountTreeModel())
 
     def _initLayouts(self):
         main_layout = QtWidgets.QVBoxLayout()
@@ -33,7 +110,7 @@ class AccountTreeWidget(QtWidgets.QWidget):
     ################################################################################
     # Public methods
     ################################################################################
-    def setModel(self, model: models.AccountTreeModel):
+    def setModel(self, model: AccountTreeModel):
         current_model = self._view.model()
 
         if model is current_model:
@@ -48,7 +125,7 @@ class AccountTreeWidget(QtWidgets.QWidget):
         self.expandTopLevel()
         self.resizeColumnsToContents()
 
-    def model(self) -> models.AccountTreeModel:
+    def model(self) -> AccountTreeModel:
         return self._view.model()
 
     def expandTopLevel(self):
