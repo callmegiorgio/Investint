@@ -6,6 +6,7 @@ import typing
 import sqlalchemy as sa
 from PyQt5               import QtCore
 from investint           import database
+from investint.core      import BalanceFormatPolicy, BalanceFormatter
 from investint.models.qt import MappedBreakdownTableModel
 
 __all__ = [
@@ -25,7 +26,9 @@ class CompanyStatementModel(MappedBreakdownTableModel):
     def __init__(self, mapped_row_names: typing.Dict[str, str], parent: typing.Optional[QtCore.QObject] = None) -> None:
         super().__init__(mapped_row_names=mapped_row_names, parent=parent)
 
-        self._period = CompanyStatementPeriod.Annual
+        self._period                = CompanyStatementPeriod.Annual
+        self._balance_format_policy = BalanceFormatPolicy.Unit
+        self._balance_formatter     = BalanceFormatter(thousands=0)
 
     def selectStatement(self,
                         cnpj: str,
@@ -87,6 +90,63 @@ class CompanyStatementModel(MappedBreakdownTableModel):
 
         self._period = period
 
+        if self._balance_format_policy in (BalanceFormatPolicy.Smallest, BalanceFormatPolicy.Greatest, BalanceFormatPolicy.Best):
+            balances = self.allBalances()
+
+            if   self._balance_format_policy == BalanceFormatPolicy.Smallest: formatter = BalanceFormatter.smallest(balances)
+            elif self._balance_format_policy == BalanceFormatPolicy.Greatest: formatter = BalanceFormatter.greatest(balances)
+            elif self._balance_format_policy == BalanceFormatPolicy.Best:     formatter = BalanceFormatter.best(balances)
+
+            self._balance_formatter = formatter
+
+    def setBalanceFormatPolicy(self, policy: BalanceFormatPolicy) -> None:
+        if self._balance_format_policy == policy:
+            return
+
+        if   policy == BalanceFormatPolicy.Dynamic:  formatter = BalanceFormatter(thousands=None)
+        elif policy == BalanceFormatPolicy.Unit:     formatter = BalanceFormatter(thousands=0)
+        elif policy == BalanceFormatPolicy.Thousand: formatter = BalanceFormatter(thousands=1)
+        elif policy == BalanceFormatPolicy.Million:  formatter = BalanceFormatter(thousands=2)
+        elif policy == BalanceFormatPolicy.Billion:  formatter = BalanceFormatter(thousands=3)
+        else:
+            balances = self.allBalances()
+
+            if   policy == BalanceFormatPolicy.Smallest: formatter = BalanceFormatter.smallest(balances)
+            elif policy == BalanceFormatPolicy.Greatest: formatter = BalanceFormatter.greatest(balances)
+            elif policy == BalanceFormatPolicy.Best:     formatter = BalanceFormatter.best(balances)
+            else:
+                return
+
+        self._balance_format_policy = policy
+        self._balance_formatter     = formatter
+
+        for column in range(self.columnCount()):
+            if self.isHorizontalAnalysisColumn(column):
+                continue
+            
+            top_left     = self.index(0,               column)
+            bottom_right = self.index(self.rowCount(), column)
+
+            self.dataChanged.emit(top_left, bottom_right)
+
+    def balanceFormatPolicy(self) -> BalanceFormatPolicy:
+        return self._balance_format_policy
+
+    def allBalances(self) -> typing.List[float]:
+        balances = []
+
+        for column in range(self.columnCount()):
+            if self.isHorizontalAnalysisColumn(column):
+                continue
+
+            for row in range(self.rowCount()):
+                number = self.number(row, column)
+
+                if number is not None:
+                    balances.append(number)
+        
+        return balances
+
     def period(self) -> CompanyStatementPeriod:
         return self._period
 
@@ -130,3 +190,15 @@ class CompanyStatementModel(MappedBreakdownTableModel):
                 quarter = int(column_data.month / 3)
 
                 return f'{quarter}T{column_data.year}'
+
+    def numberText(self, row: int, column: int) -> typing.Optional[str]:
+        number = self.number(row, column)
+
+        if number is None:
+            return None
+
+        if self.isHorizontalAnalysisColumn(column):
+            percent = number * 100
+            return f'{percent:.2f}%'
+        else:
+            return self._balance_formatter.format(number, precision=2)

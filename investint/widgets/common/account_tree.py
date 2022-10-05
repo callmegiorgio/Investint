@@ -1,7 +1,7 @@
 import typing
 from PyQt5            import QtCore, QtGui, QtWidgets
-from investint.core   import Settings
-from investint.models import AccountTreeModel
+from investint.core   import Settings, BalanceFormatPolicy, BalanceFormatter
+from investint.models import AccountTreeModel, AccountTreeItem
 
 __all__ = [
     'AccountTreeWidget'
@@ -61,10 +61,10 @@ class BranchTreeView(QtWidgets.QTreeView):
             return
 
         if enabled:
-            self.setItemDelegate(self._default_delegate)
+            self.setItemDelegateForColumn(0, self._default_delegate)
             self.resetIndentation()
         else:
-            self.setItemDelegate(self._branch_delegate)
+            self.setItemDelegateForColumn(0, self._branch_delegate)
             self.setIndentation(0)
     
     def isIndentationEnabled(self) -> bool:
@@ -96,7 +96,9 @@ class AccountTreeWidget(QtWidgets.QWidget):
         self._view.setIndentationEnabled(appearance_settings.isAccountTreeIndented())
         self._view.header().setStretchLastSection(False)
         self._view.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Interactive)
+
         appearance_settings.accountTreeIndentedChanged.connect(self._view.setIndentationEnabled)
+        appearance_settings.balanceFormatPolicyChanged.connect(lambda policy: self.model().setBalanceFormatPolicy(policy))
 
         self.setModel(AccountTreeModel())
 
@@ -120,6 +122,8 @@ class AccountTreeWidget(QtWidgets.QWidget):
             current_model.modelReset.disconnect(self._onModelReset)
 
         self._view.setModel(model)
+        
+        model.setBalanceFormatPolicy(Settings.globalInstance().appearance().balanceFormatPolicy())
         model.modelReset.connect(self._onModelReset)
 
         self.expandTopLevel()

@@ -1,6 +1,6 @@
 import typing
 from PyQt5     import QtCore, QtWidgets
-from investint import models, widgets
+from investint import core, models, widgets
 
 __all__ = [
     'CompanyStatementWidget'
@@ -52,6 +52,8 @@ class CompanyStatementWidget(QtWidgets.QWidget):
         self._toggle_hr_button.setCheckable(True)
         self._toggle_hr_button.setChecked(self.proxyModel().isReversedHorizontally())
         self._toggle_hr_button.clicked.connect(self._onToggleHrButtonClicked)
+
+        core.Settings.globalInstance().appearance().balanceFormatPolicyChanged.connect(self._onBalanceFormatPolicyChanged)
     
     def _initLayouts(self):
         filter_layout = QtWidgets.QHBoxLayout()
@@ -79,8 +81,10 @@ class CompanyStatementWidget(QtWidgets.QWidget):
 
     def setModel(self, model: models.CompanyStatementModel):
         self.proxyModel().setSourceModel(model)
+        model.setBalanceFormatPolicy(core.Settings.globalInstance().appearance().balanceFormatPolicy())
+
         self._toggle_ha_button.setChecked(model.isHorizontalAnalysisEnabled())
-        self._toggle_hr_button
+        self._toggle_hr_button.setChecked(self.proxyModel().isReversedHorizontally())
 
     def model(self) -> models.CompanyStatementModel:
         return self.proxyModel().sourceModel()
@@ -118,9 +122,13 @@ class CompanyStatementWidget(QtWidgets.QWidget):
     # Private slots
     ################################################################################
     @QtCore.pyqtSlot(bool)
-    def _onToggleHaButtonClicked(self, checked: bool):
+    def _onToggleHaButtonClicked(self, checked: bool) -> None:
         self.model().setHorizontalAnalysisEnabled(checked)
 
     @QtCore.pyqtSlot(bool)
-    def _onToggleHrButtonClicked(self, checked: bool):
+    def _onToggleHrButtonClicked(self, checked: bool) -> None:
         self.proxyModel().setReversedHorizontally(checked)
+
+    @QtCore.pyqtSlot(core.BalanceFormatPolicy)
+    def _onBalanceFormatPolicyChanged(self, policy: core.BalanceFormatPolicy) -> None:
+        self.model().setBalanceFormatPolicy(policy)

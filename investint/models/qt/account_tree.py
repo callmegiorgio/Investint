@@ -1,14 +1,10 @@
 from __future__ import annotations
 import collections
-import cvm
-import datetime
 import enum
-import sqlalchemy     as sa
-import sqlalchemy.orm as sa_orm
 import typing
-from PyQt5        import QtCore
-from PyQt5.QtCore import Qt
-from investint    import database, models
+from PyQt5          import QtCore
+from PyQt5.QtCore   import Qt
+from investint.core import BalanceFormatPolicy, BalanceFormatter
 
 __all__ = [
     'AccountTreeModel',
@@ -51,6 +47,18 @@ class AccountTreeItem:
 
     def quantities(self) -> typing.List[typing.Optional[int]]:
         return self._quantities.copy()
+
+    def allBalances(self) -> typing.List[int]:
+        balances = []
+
+        for quantity in self._quantities:
+            if quantity is not None:
+                balances.append(quantity)
+
+        for child in self._children:
+            balances += child.allBalances()
+
+        return balances
 
     def level(self) -> int:
         return self._code.count('.') + 1
@@ -121,6 +129,9 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
         self._root_item           = AccountTreeItem('', '')
         self._numeric_column_data = []
 
+        self._balance_format_policy = BalanceFormatPolicy.Unit
+        self._balance_formatter     = BalanceFormatter(0)
+
         self.retranslateUi()
 
     def clear(self):
@@ -152,6 +163,44 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
     def setNumericColumnData(self, column: int, data: typing.Any) -> None:
         self._numeric_column_data[column] = data
         self.headerDataChanged.emit(Qt.Orientation.Horizontal, column, column)
+
+    def setBalanceFormatPolicy(self, policy: BalanceFormatPolicy) -> None:
+        if self._balance_format_policy == policy:
+            return
+
+        if   policy == BalanceFormatPolicy.Dynamic:  formatter = BalanceFormatter(thousands=None)
+        elif policy == BalanceFormatPolicy.Unit:     formatter = BalanceFormatter(thousands=0)
+        elif policy == BalanceFormatPolicy.Thousand: formatter = BalanceFormatter(thousands=1)
+        elif policy == BalanceFormatPolicy.Million:  formatter = BalanceFormatter(thousands=2)
+        elif policy == BalanceFormatPolicy.Billion:  formatter = BalanceFormatter(thousands=3)
+        else:
+            balances = self._root_item.allBalances()
+
+            if   policy == BalanceFormatPolicy.Smallest: formatter = BalanceFormatter.smallest(balances)
+            elif policy == BalanceFormatPolicy.Greatest: formatter = BalanceFormatter.greatest(balances)
+            elif policy == BalanceFormatPolicy.Best:     formatter = BalanceFormatter.best(balances)
+            else:
+                return
+
+        self._balance_format_policy = policy
+        self._balance_formatter     = formatter
+
+        top_left     = self.index(0,               self.staticColumnCount())
+        bottom_right = self.index(self.rowCount(), self.numericColumnCount())
+
+        self.dataChanged.emit(top_left, bottom_right)
+
+    def balanceFormatPolicy(self) -> BalanceFormatPolicy:
+        return self._balance_format_policy
+
+    def invisibleRootItem(self) -> AccountTreeItem:
+        return self._root_item
+
+    def itemFromIndex(self, index: QtCore.QModelIndex) -> AccountTreeItem:
+        if not index.isValid():
+            return self.invisibleRootItem()
+        else:
+            return index.internalPointer()
 
     def numericColumnCount(self) -> int:
         return len(self._numeric_column_data)
@@ -223,6 +272,15 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
 
         self._root_item._sort()
 
+        if self._balance_format_policy in (BalanceFormatPolicy.Smallest, BalanceFormatPolicy.Greatest, BalanceFormatPolicy.Best):
+            balances = self._root_item.allBalances()
+
+            if   self._balance_format_policy == BalanceFormatPolicy.Smallest: formatter = BalanceFormatter.smallest(balances)
+            elif self._balance_format_policy == BalanceFormatPolicy.Greatest: formatter = BalanceFormatter.greatest(balances)
+            elif self._balance_format_policy == BalanceFormatPolicy.Best:     formatter = BalanceFormatter.best(balances)
+
+            self._balance_formatter = formatter
+
         self.endResetModel()
    
     def setHeaderText(self, column: int, text: str) -> None:
@@ -265,7 +323,7 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
             except (IndexError, TypeError):
                 return ''
             else:
-                return QtCore.QLocale().toCurrencyString(quantity)
+                return self._balance_formatter.format(quantity, precision=2)
 
         return ''
 
@@ -341,10 +399,7 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
         return False
 
     def rowCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> int:
-        if not parent.isValid():
-            parent_item = self._root_item
-        else:
-            parent_item = parent.internalPointer()
+        parent_item = self.itemFromIndex(parent)
         
         return parent_item.childCount()
 
