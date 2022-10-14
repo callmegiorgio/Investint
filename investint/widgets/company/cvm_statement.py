@@ -1,7 +1,7 @@
 import cvm
 import typing
 from PyQt5     import QtCore, QtWidgets
-from investint import widgets, models
+from investint import core, widgets, models
 
 __all__ = [
     'CompanyCvmStatementWidget'
@@ -52,6 +52,9 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         self._reference_date_lbl   = QtWidgets.QLabel()
         self._reference_date_combo = QtWidgets.QComboBox()
         self._reference_date_combo.currentIndexChanged.connect(self.applyFilter)
+
+        appearance_settings = core.Settings.globalInstance().appearance()
+        appearance_settings.dateFormatChanged.connect(self._onDateFormatChanged)
 
     def _initLayouts(self):
         filter_layout = QtWidgets.QGridLayout()
@@ -158,6 +161,12 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         self._resetReferenceDateCombo()
         self.applyFilter()
 
+    @QtCore.pyqtSlot()
+    def _onDateFormatChanged(self) -> None:
+        for i in range(self._reference_date_combo.count()):
+            reference_date = self._reference_date_combo.itemData(i)
+            self._reference_date_combo.setItemText(i, core.Settings.dateToString(reference_date))
+
     ################################################################################
     # Private methods
     ################################################################################
@@ -175,4 +184,4 @@ class CompanyCvmStatementWidget(QtWidgets.QWidget):
         self._reference_date_combo.clear()
 
         for reference_date in reference_dates:
-            self._reference_date_combo.addItem(str(reference_date), reference_date)
+            self._reference_date_combo.addItem(core.Settings.dateToString(reference_date), reference_date)

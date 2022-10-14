@@ -1,6 +1,7 @@
+import datetime
 import typing
 from PyQt5     import QtCore, QtWidgets
-from investint import gui, widgets, models
+from investint import core, gui, widgets, models
 import cvm
 
 __all__ = [
@@ -41,6 +42,9 @@ class CompanyGeneralInformationWidget(QtWidgets.QWidget):
         self._fiscal_year_closing_date       = widgets.DoubleLabel()
         self._website_lbl                    = widgets.DoubleLabel()
 
+        appearance_settings = core.Settings.globalInstance().appearance()
+        appearance_settings.dateFormatChanged.connect(self.refreshDateLabels)
+
     def _initLayouts(self):
         main_layout = QtWidgets.QGridLayout()
         main_layout.addWidget(self._cnpj_lbl,                       0, 0)
@@ -73,26 +77,12 @@ class CompanyGeneralInformationWidget(QtWidgets.QWidget):
         self._cnpj_lbl.setLowerText(cvm.datatypes.CNPJ(co.cnpj).to_string())
         self._cvm_code_lbl.setLowerText(co.cvm_code)
 
-        def labelSince(text, date):
-            if date is None:
-                return text
-            else:
-                return text + self.tr(' (since {})').format(date)
-
-        self._corporate_name_lbl.setLowerText(labelSince(co.corporate_name, co.corporate_name_date))
         self._prev_corp_name_lbl.setLowerText(co.prev_corporate_name or '')
         self._trade_name_lbl.setLowerText(co.trade_name or '')
-
-        self._establishment_date_lbl.setLowerText(str(co.establishment_date))
 
         self._industry_lbl.setLowerText(gui.industryToString(co.industry))
         self._activity_desc_lbl.setLowerText(co.activity_description)
 
-        self._cvm_registration_date_lbl.setLowerText(str(co.registration_date))
-        self._cvm_registration_status_lbl.setLowerText(labelSince(gui.registrationStatusToString(co.registration_status), co.registration_status_date))
-        self._cvm_registration_categ_lbl.setLowerText(labelSince(gui.registrationCategoryToString(co.registration_category), co.registration_category_date))
-
-        self._cancelation_date_lbl.setLowerText(str(co.cancelation_date))
         self._cancelation_reason_lbl.setLowerText(co.cancelation_reason)
 
         # TODO
@@ -102,12 +92,40 @@ class CompanyGeneralInformationWidget(QtWidgets.QWidget):
         self._home_country_lbl.setLowerText(co.home_country.name)
         self._securities_custody_country_lbl.setLowerText(co.securities_custody_country.name)
 
-        self._issuer_status_lbl.setLowerText(labelSince(gui.issuerStatusToString(co.issuer_status), co.issuer_status_date))
-        self._fiscal_year_closing_date.setLowerText(labelSince(f'{co.fiscal_year_closing_day}/{co.fiscal_year_closing_month}', co.fiscal_year_change_date))
         self._website_lbl.setLowerText(co.website)
+
+        self.refreshDateLabels()
 
     def company(self) -> typing.Optional[models.PublicCompany]:
         return self._company
+
+    def refreshDateLabels(self) -> None:
+        co = self._company
+
+        if co is None:
+            return
+
+        def labelSince(text: str, date: typing.Optional[datetime.date]):
+            if date is None:
+                return text
+            else:
+                date_str = core.Settings.dateToString(date)
+                return text + self.tr(' (since {})').format(date_str)
+
+        self._corporate_name_lbl.setLowerText(labelSince(co.corporate_name, co.corporate_name_date))
+        self._establishment_date_lbl.setLowerText(core.Settings.dateToString(co.establishment_date))
+
+        self._cvm_registration_date_lbl.setLowerText(core.Settings.dateToString(co.registration_date))
+        self._cvm_registration_status_lbl.setLowerText(labelSince(gui.registrationStatusToString(co.registration_status), co.registration_status_date))
+        self._cvm_registration_categ_lbl.setLowerText(labelSince(gui.registrationCategoryToString(co.registration_category), co.registration_category_date))
+
+        if co.cancelation_date is not None:
+            self._cancelation_date_lbl.setLowerText(core.Settings.dateToString(co.cancelation_date))
+        else:
+            self._cancelation_date_lbl.setLowerText('')
+
+        self._issuer_status_lbl.setLowerText(labelSince(gui.issuerStatusToString(co.issuer_status), co.issuer_status_date))
+        self._fiscal_year_closing_date.setLowerText(labelSince(f'{co.fiscal_year_closing_day}/{co.fiscal_year_closing_month}', co.fiscal_year_change_date))
 
     def retranslateUi(self):
         def bold(text: str):

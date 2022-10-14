@@ -1,4 +1,5 @@
 from __future__ import annotations
+import datetime
 import functools
 import typing
 from PyQt5 import QtCore
@@ -27,6 +28,9 @@ class BaseSettings(QtCore.QObject):
 
 class AppearanceSettings(BaseSettings):
     accountTreeIndentedChanged = QtCore.pyqtSignal(bool)
+    
+    dateFormatChanged = QtCore.pyqtSignal(str)
+    """Date format in Qt notation (e.g. yyyy-MM-dd)."""
 
     def setAccountTreeIndented(self, enabled: bool) -> None:
         if self.setValue('accountTreeIndented', enabled):
@@ -34,6 +38,13 @@ class AppearanceSettings(BaseSettings):
 
     def isAccountTreeIndented(self) -> bool:
         return self._settings.value('accountTreeIndented', True, bool)
+
+    def setDateFormat(self, format: str) -> None:
+        if self.setValue('dateFormat', format):
+            self.dateFormatChanged.emit(format)
+    
+    def dateFormat(self) -> str:
+        return self._settings.value('dateFormat', 'yyyy-MM-dd', str)
 
 class Settings:
     @staticmethod
@@ -44,6 +55,16 @@ class Settings:
     @staticmethod
     def globalInstance() -> Settings:
         return Settings._instance()
+
+    @staticmethod
+    def dateToString(date: typing.Union[QtCore.QDate, datetime.date]) -> str:
+        settings = Settings.globalInstance()
+        date_fmt = settings.appearance().dateFormat()
+
+        if isinstance(date, datetime.date):
+            date = QtCore.QDate(date.year, date.month, date.day)
+
+        return date.toString(date_fmt)
 
     def __init__(self) -> None:
         super().__init__()

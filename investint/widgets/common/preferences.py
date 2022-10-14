@@ -46,6 +46,7 @@ class AppearanceTab(PreferencesTab):
         super().__init__(parent=parent)
 
         self._initAccountsGroup()
+        self._initDateGroup()
 
         self.retranslateUi()
 
@@ -62,9 +63,28 @@ class AppearanceTab(PreferencesTab):
         
         self._accounts_group = self.addGroup(l)
 
+    def _initDateGroup(self):
+        appearance_settings = self.settings().appearance()
+
+        self._date_format_lbl = QtWidgets.QLabel()
+        
+        self._date_format_edit = QtWidgets.QLineEdit()
+        self._date_format_edit.setText(appearance_settings.dateFormat())
+        self._date_format_edit.textChanged.connect(appearance_settings.setDateFormat)
+
+        l = QtWidgets.QVBoxLayout()
+        l.addWidget(self._date_format_lbl)
+        l.addWidget(self._date_format_edit)
+        l.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+
+        self._date_group = self.addGroup(l)
+
     def retranslateUi(self):
         self._accounts_group.setTitle(self.tr('Accounts'))
         self._account_tree_indented_chk.setText(self.tr('Indent branches in all account trees'))
+
+        self._date_group.setTitle(self.tr('Date'))
+        self._date_format_lbl.setText(self.tr('Format'))
 
 class PreferencesWindow(QtWidgets.QWidget):
     ################################################################################
