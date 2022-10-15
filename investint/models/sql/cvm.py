@@ -279,6 +279,18 @@ class Statement(Base):
 
         return list(row[0] for row in result)
 
+def none_safe_add(a, b):
+    try:
+        return a + b
+    except TypeError:
+        return a if a is not None else b
+
+def none_safe_sub(a, b):
+    try:
+        return a - b
+    except TypeError:
+        return a if a is not None else b
+
 @database.mapper_registry.mapped
 @dataclasses.dataclass
 class IncomeStatement(cvm.IncomeStatement):
@@ -305,6 +317,40 @@ class IncomeStatement(cvm.IncomeStatement):
     id: int            = dataclasses.field(init=False)
     document_id: int   = dataclasses.field(init=False)
     document: Document = dataclasses.field(init=False)
+
+    def __add__(self, other: IncomeStatement) -> IncomeStatement:
+        return IncomeStatement(
+            revenue                         = self.revenue + other.revenue,
+            costs                           = self.costs + other.costs,
+            gross_profit                    = self.gross_profit + other.gross_profit,
+            operating_income_and_expenses   = self.operating_income_and_expenses + other.operating_income_and_expenses,
+            operating_result                = none_safe_add(self.operating_result, other.operating_result),
+            depreciation_and_amortization   = none_safe_add(self.depreciation_and_amortization, other.depreciation_and_amortization),
+            operating_profit                = self.operating_profit + other.operating_profit,
+            nonoperating_result             = self.nonoperating_result + other.nonoperating_result,
+            earnings_before_tax             = self.earnings_before_tax + other.earnings_before_tax,
+            tax_expenses                    = self.tax_expenses + other.tax_expenses,
+            continuing_operation_result     = self.continuing_operation_result + other.continuing_operation_result,
+            discontinued_operation_result   = self.discontinued_operation_result + other.discontinued_operation_result,
+            net_income                      = self.net_income + other.net_income,
+        )
+
+    def __sub__(self, other: IncomeStatement) -> IncomeStatement:
+        return IncomeStatement(
+            revenue                         = self.revenue - other.revenue,
+            costs                           = self.costs - other.costs,
+            gross_profit                    = self.gross_profit - other.gross_profit,
+            operating_income_and_expenses   = self.operating_income_and_expenses - other.operating_income_and_expenses,
+            operating_result                = none_safe_sub(self.operating_result, other.operating_result),
+            depreciation_and_amortization   = none_safe_sub(self.depreciation_and_amortization, other.depreciation_and_amortization),
+            operating_profit                = self.operating_profit - other.operating_profit,
+            nonoperating_result             = self.nonoperating_result - other.nonoperating_result,
+            earnings_before_tax             = self.earnings_before_tax - other.earnings_before_tax,
+            tax_expenses                    = self.tax_expenses - other.tax_expenses,
+            continuing_operation_result     = self.continuing_operation_result - other.continuing_operation_result,
+            discontinued_operation_result   = self.discontinued_operation_result - other.discontinued_operation_result,
+            net_income                      = self.net_income - other.net_income,
+        )
 
     __mapper_args__ = {
         'properties': {

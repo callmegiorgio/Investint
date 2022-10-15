@@ -1,3 +1,4 @@
+import collections
 import datetime
 import cvm
 import dataclasses
@@ -22,15 +23,90 @@ class CompanyIndicatorModel(MappedBreakdownTableModel):
         self._period       = CompanyStatementPeriod.Annual
 
     def select(self, company_id: int, period: CompanyStatementPeriod) -> None:
+        Period = CompanyStatementPeriod
+
+        self.clear()
+
+        self._period = period
+
+        with Session() as session:
+            if period == Period.Annual:
+                result = self._select(session, company_id, cvm.DocumentType.DFP)
+
+                for row in result.all():
+                    reference_date, income_statement, balance_sheet = row
+                    indicator = self.createIndicator(balance_sheet, income_statement)
+
+                    self.append(reference_date, dataclasses.asdict(indicator))
+
+            elif period in (Period.Quarter1, Period.Quarter2, Period.Quarter3):
+                result = self._select(session, company_id, cvm.DocumentType.ITR)
+
+                for row in result.all():
+                    reference_date: datetime.date = row[0]
+
+                    if not period.contains(reference_date):
+                        continue
+
+                    income_statement = row[1]
+                    balance_sheet    = row[2]
+
+                    indicator = self.createIndicator(balance_sheet, income_statement)
+
+                    self.append(reference_date, dataclasses.asdict(indicator))
+            
+            else:
+                quarterly_result = self._select(session, company_id, cvm.DocumentType.ITR)
+                quarterly_rows   = collections.defaultdict(list)
+                
+                for row in quarterly_result.all():
+                    reference_date: datetime.date = row[0]
+                    quarterly_rows[reference_date.year].append(row)
+
+                annual_result = self._select(session, company_id, cvm.DocumentType.DFP)
+                annual_rows   = {}
+
+                for row in annual_result.all():
+                    reference_date: datetime.date = row[0]
+                    annual_rows[reference_date.year] = row
+                
+                for year, rows in quarterly_rows.items():
+                    accumulated_income_statement = None
+
+                    for row in rows:
+                        reference_date, income_statement, balance_sheet = row
+
+                        if accumulated_income_statement is None:
+                            accumulated_income_statement = income_statement
+                        else:
+                            accumulated_income_statement = accumulated_income_statement + income_statement
+
+                        if period == Period.Quarterly:
+                            indicator = self.createIndicator(balance_sheet, income_statement)
+
+                            self.append(reference_date, dataclasses.asdict(indicator))
+                    
+                    if accumulated_income_statement is None:
+                        continue
+
+                    try:
+                        annual_row = annual_rows[year]
+                    except KeyError:
+                        pass
+                    else:
+                        reference_date, income_statement, balance_sheet = annual_row
+
+                        income_statement = income_statement - accumulated_income_statement
+                        indicator        = self.createIndicator(balance_sheet, income_statement)
+
+                        self.append(reference_date, dataclasses.asdict(indicator))
+                    
+    
+    def _select(self, session: Session, company_id: int, document_type: cvm.DocumentType) -> sa.engine.Result:
         D: Document        = sa_orm.aliased(Document,        name='d')
         I: IncomeStatement = sa_orm.aliased(IncomeStatement, name='i')
         B: BalanceSheet    = sa_orm.aliased(BalanceSheet,    name='b')
         
-        if period == CompanyStatementPeriod.Annual:
-            document_type = cvm.datatypes.DocumentType.DFP
-        else:
-            document_type = cvm.datatypes.DocumentType.ITR
-
         select_stmt = (
             sa.select(D.reference_date, I, B)
               .select_from(D)
@@ -41,19 +117,8 @@ class CompanyIndicatorModel(MappedBreakdownTableModel):
               .order_by(D.reference_date.asc())
         )
 
-        session = Session()
-        result  = session.execute(select_stmt)
+        return session.execute(select_stmt)
 
-        self.clear()
-
-        self._period = period
-
-        for row in result.all():
-            reference_date, income_statement, balance_sheet = row
-            indicator = self.createIndicator(balance_sheet, income_statement)
-
-            self.append(reference_date, dataclasses.asdict(indicator))
-    
     def createIndicator(self, balance_sheet: cvm.balances.BalanceSheet, income_statement: cvm.balances.IncomeStatement) -> typing.Any:
         return
 
