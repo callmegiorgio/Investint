@@ -46,6 +46,7 @@ class AppearanceTab(PreferencesTab):
         super().__init__(parent=parent)
 
         self._initAccountsGroup()
+        self._initDateGroup()
 
         self.retranslateUi()
 
@@ -73,6 +74,22 @@ class AppearanceTab(PreferencesTab):
         
         self._accounts_group = self.addGroup(l)
 
+    def _initDateGroup(self):
+        appearance_settings = self.settings().appearance()
+
+        self._date_format_lbl = QtWidgets.QLabel()
+        
+        self._date_format_edit = QtWidgets.QLineEdit()
+        self._date_format_edit.setText(appearance_settings.dateFormat())
+        self._date_format_edit.textChanged.connect(appearance_settings.setDateFormat)
+
+        l = QtWidgets.QVBoxLayout()
+        l.addWidget(self._date_format_lbl)
+        l.addWidget(self._date_format_edit)
+        l.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+
+        self._date_group = self.addGroup(l)
+
     def retranslateUi(self):
         self._accounts_group.setTitle(self.tr('Accounts'))
         self._account_tree_indented_chk.setText(self.tr('Indent branches in all account trees'))
@@ -87,6 +104,9 @@ class AppearanceTab(PreferencesTab):
         self._balance_format_policy_combo.setItemText(BalanceFormatPolicy.Smallest, self.tr('Show all balances according to the smallest balance in the group'))
         self._balance_format_policy_combo.setItemText(BalanceFormatPolicy.Greatest, self.tr('Show all balances according to the greatest balance in the group'))
         self._balance_format_policy_combo.setItemText(BalanceFormatPolicy.Best,     self.tr('Show all balances according to the average balance in the group'))
+
+        self._date_group.setTitle(self.tr('Date'))
+        self._date_format_lbl.setText(self.tr('Format'))
 
     @QtCore.pyqtSlot(int)
     def _onBalanceFormatPolicyComboIndexChanged(self, index: int):

@@ -1,10 +1,12 @@
 from __future__ import annotations
 import collections
+import datetime
 import enum
 import typing
 from PyQt5          import QtCore
 from PyQt5.QtCore   import Qt
 from investint.core import BalanceFormatPolicy, BalanceFormatter
+from investint      import core
 
 __all__ = [
     'AccountTreeModel',
@@ -132,6 +134,9 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
         self._balance_format_policy = BalanceFormatPolicy.Unit
         self._balance_formatter     = BalanceFormatter(0)
 
+        appearance_settings = core.Settings.globalInstance().appearance()
+        appearance_settings.dateFormatChanged.connect(self._onDateFormatChanged)
+
         self.retranslateUi()
 
     def clear(self):
@@ -209,10 +214,12 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
         return self._numeric_column_data[column]
 
     def numericColumnText(self, column: int) -> str:
-        try:
-            return str(self.numericColumnData(column))
-        except ValueError:
-            return ''
+        data = self.numericColumnData(column)
+
+        if isinstance(data, datetime.date):
+            return core.Settings.dateToString(data)
+        
+        return ''
 
     def append(self, code: str, name: str, quantities: typing.Dict[typing.Any, int]):
         row_count = self.rowCount()
@@ -405,3 +412,7 @@ class AccountTreeModel(QtCore.QAbstractItemModel):
 
     def columnCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> int:
         return self.staticColumnCount() + self.numericColumnCount()
+
+    @QtCore.pyqtSlot()
+    def _onDateFormatChanged(self):
+        self.headerDataChanged.emit(QtCore.Qt.Orientation.Vertical, self.staticColumnCount(), self.columnCount())
