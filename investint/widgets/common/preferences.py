@@ -1,6 +1,6 @@
 import typing
 from PyQt5          import QtCore, QtWidgets
-from investint.core import Settings
+from investint.core import Settings, BalanceFormatPolicy
 
 __all__ = [
     'PreferencesWindow'
@@ -56,8 +56,19 @@ class AppearanceTab(PreferencesTab):
         self._account_tree_indented_chk.setChecked(appearance_settings.isAccountTreeIndented())
         self._account_tree_indented_chk.toggled.connect(appearance_settings.setAccountTreeIndented)
 
+        self._balance_format_policy_lbl = QtWidgets.QLabel()
+        self._balance_format_policy_combo = QtWidgets.QComboBox()
+        
+        for policy in BalanceFormatPolicy:
+            self._balance_format_policy_combo.addItem('', policy)
+
+        self._balance_format_policy_combo.setCurrentIndex(appearance_settings.balanceFormatPolicy())
+        self._balance_format_policy_combo.currentIndexChanged.connect(self._onBalanceFormatPolicyComboIndexChanged)
+
         l = QtWidgets.QVBoxLayout()
         l.addWidget(self._account_tree_indented_chk)
+        l.addWidget(self._balance_format_policy_lbl)
+        l.addWidget(self._balance_format_policy_combo)
         l.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         
         self._accounts_group = self.addGroup(l)
@@ -65,6 +76,23 @@ class AppearanceTab(PreferencesTab):
     def retranslateUi(self):
         self._accounts_group.setTitle(self.tr('Accounts'))
         self._account_tree_indented_chk.setText(self.tr('Indent branches in all account trees'))
+
+        self._balance_format_policy_lbl.setText(self.tr('Define how account balances should be formatted:'))
+
+        self._balance_format_policy_combo.setItemText(BalanceFormatPolicy.Dynamic,  self.tr('Show all balances with dynamic suffixes'))
+        self._balance_format_policy_combo.setItemText(BalanceFormatPolicy.Unit,     self.tr('Show all balances in units, with no suffix'))
+        self._balance_format_policy_combo.setItemText(BalanceFormatPolicy.Thousand, self.tr("Show all balances in thousands, suffixed with 'K'"))
+        self._balance_format_policy_combo.setItemText(BalanceFormatPolicy.Million,  self.tr("Show all balances in millions, suffixed with 'M'"))
+        self._balance_format_policy_combo.setItemText(BalanceFormatPolicy.Billion,  self.tr("Show all balances in billions, suffixed with 'B'"))
+        self._balance_format_policy_combo.setItemText(BalanceFormatPolicy.Smallest, self.tr('Show all balances according to the smallest balance in the group'))
+        self._balance_format_policy_combo.setItemText(BalanceFormatPolicy.Greatest, self.tr('Show all balances according to the greatest balance in the group'))
+        self._balance_format_policy_combo.setItemText(BalanceFormatPolicy.Best,     self.tr('Show all balances according to the average balance in the group'))
+
+    @QtCore.pyqtSlot(int)
+    def _onBalanceFormatPolicyComboIndexChanged(self, index: int):
+        policy = self._balance_format_policy_combo.itemData(index)
+        
+        self.settings().appearance().setBalanceFormatPolicy(policy)
 
 class PreferencesWindow(QtWidgets.QWidget):
     ################################################################################

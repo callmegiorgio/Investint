@@ -1,7 +1,8 @@
 from __future__ import annotations
 import functools
 import typing
-from PyQt5 import QtCore
+from PyQt5          import QtCore
+from investint.core import BalanceFormatPolicy
 
 __all__ = [
     'BaseSettings',
@@ -27,6 +28,7 @@ class BaseSettings(QtCore.QObject):
 
 class AppearanceSettings(BaseSettings):
     accountTreeIndentedChanged = QtCore.pyqtSignal(bool)
+    balanceFormatPolicyChanged = QtCore.pyqtSignal(BalanceFormatPolicy)
 
     def setAccountTreeIndented(self, enabled: bool) -> None:
         if self.setValue('accountTreeIndented', enabled):
@@ -34,6 +36,14 @@ class AppearanceSettings(BaseSettings):
 
     def isAccountTreeIndented(self) -> bool:
         return self._settings.value('accountTreeIndented', True, bool)
+
+    def setBalanceFormatPolicy(self, policy: BalanceFormatPolicy) -> None:
+        if self.setValue('balanceFormatPolicy', policy.name):
+            self.balanceFormatPolicyChanged.emit(policy)
+
+    def balanceFormatPolicy(self) -> BalanceFormatPolicy:
+        name = self._settings.value('balanceFormatPolicy', 'Unit', str)
+        return getattr(BalanceFormatPolicy, name)
 
 class Settings:
     @staticmethod
