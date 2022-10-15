@@ -52,6 +52,9 @@ class CompanyIncomeStatementModel(CompanyStatementModel):
     ################################################################################
     # Overriden methods
     ################################################################################
+    def shouldAccumulateQuarters(self) -> bool:
+        return True
+
     def selectStatement(self,
                         cnpj: str,
                         start_date: datetime.date,
